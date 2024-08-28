@@ -1,4 +1,4 @@
-Conversor de Imágenes WebP a PNG
+## Conversor de Imágenes WebP a PNG
 Este proyecto es una aplicación sencilla para convertir imágenes en formato WebP a PNG utilizando Python y Tkinter. La conversión es realizada por la biblioteca Pillow y la interfaz gráfica está construida con Tkinter.
 
 Descripción:
