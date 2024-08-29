@@ -17,9 +17,9 @@ Para ejecutar este proyecto, necesitas tener instaladas las siguientes bibliotec
 
 1. **Pillow**: Puedes instalar Pillow utilizando pip:
 
-    ///bash
+    ```bash
     pip install pillow
-    ///
+    ```
 
 2. **tkinter**: En la mayoría de las instalaciones de Python, tkinter ya está incluido. Si no está disponible, consulta la documentación de tu distribución de Python para instrucciones específicas sobre cómo instalarlo.
 
@@ -27,9 +27,9 @@ Para ejecutar este proyecto, necesitas tener instaladas las siguientes bibliotec
 
 1. **Ejecuta el script Python**: Para iniciar la aplicación, ejecuta el script Python:
 
-    ///bash
+    ```bash
     python webp_to_png.py
-    ///
+    ```
 
 2. **Interfaz de Usuario**: Al ejecutar el script, se abrirá una ventana con un botón "Iniciar Conversión". Haz clic en el botón para iniciar la conversión de imágenes.
 
@@ -37,7 +37,7 @@ Para ejecutar este proyecto, necesitas tener instaladas las siguientes bibliotec
 
 Para generar un archivo ejecutable `.exe` a partir del script, utiliza PyInstaller con el siguiente comando:
 
-    ///bash
+    ```bash
     pyinstaller --onefile --windowed --distpath exe --workpath exe\build --specpath exe webp_to_png.py
-    ///
+    ```
 
