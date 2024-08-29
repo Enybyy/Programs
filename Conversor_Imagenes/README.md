@@ -37,7 +37,7 @@ Para ejecutar este proyecto, necesitas tener instaladas las siguientes bibliotec
 
 Para generar un archivo ejecutable `.exe` a partir del script, utiliza PyInstaller con el siguiente comando:
 
-    ```python
+    
     pyinstaller --onefile --windowed --distpath exe --workpath exe\build --specpath exe webp_to_png.py
-    ```
+    
 
