@@ -17,7 +17,7 @@ Para ejecutar este proyecto, necesitas tener instaladas las siguientes bibliotec
 
 1. **Pillow**: Puedes instalar Pillow utilizando pip:
 
-    ```bash
+    ```python
     pip install pillow
     ```
 
@@ -27,7 +27,7 @@ Para ejecutar este proyecto, necesitas tener instaladas las siguientes bibliotec
 
 1. **Ejecuta el script Python**: Para iniciar la aplicación, ejecuta el script Python:
 
-    ```bash
+    ```python
     python webp_to_png.py
     ```
 
@@ -37,7 +37,7 @@ Para ejecutar este proyecto, necesitas tener instaladas las siguientes bibliotec
 
 Para generar un archivo ejecutable `.exe` a partir del script, utiliza PyInstaller con el siguiente comando:
 
-    
+    ```python
     pyinstaller --onefile --windowed --distpath exe --workpath exe\build --specpath exe webp_to_png.py
-    
+    ```
 
