@@ -1,2 +1,1 @@
-# Programs
- Este repositorio contiene scripts y programas para automatizar diversas tareas y procesos, incluyendo herramientas de conversión y utilidades con interfaces gráficas. Ideal para simplificar y mejorar la eficiencia en tareas repetitivas.
+Bienvenido a este repositorio, donde encontrarás una colección de scripts y programas diseñados para automatizar una variedad de tareas y procesos. Estas herramientas incluyen desde conversión de datos hasta utilidades con interfaces gráficas, todas creadas para simplificar y mejorar la eficiencia en tareas repetitivas.
