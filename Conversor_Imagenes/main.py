@@ -1,8 +1,7 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QFileDialog, QMessageBox, QComboBox
+from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QComboBox, QWidget, QFileDialog, QMessageBox, QHBoxLayout
 from PySide6.QtCore import Qt
-import os
-from PIL import Image
 import sys
+from converter import convertir_imagenes
 
 # Variables globales para las carpetas y los formatos de imagen
 carpeta_origen = ""
@@ -10,35 +9,9 @@ carpeta_destino = ""
 formato_origen = "WEBP"  # Formato de imagen por defecto
 formato_destino = "PNG"  # Formato de imagen por defecto
 
-# Función para convertir imágenes
-def convertir_imagenes():
-    global carpeta_origen, carpeta_destino, formato_origen, formato_destino
-    
-    # Asegurarse de que las carpetas estén definidas
-    if not carpeta_origen or not carpeta_destino:
-        QMessageBox.critical(None, "Error", "Las carpetas de origen o destino no están definidas.")
-        return
-
-    # Lista para verificar si se encontraron archivos
-    archivos_convertidos = False
-    
-    # Convertir todas las imágenes al formato seleccionado
-    for archivo in os.listdir(carpeta_origen):
-        if archivo.lower().endswith(f".{formato_origen.lower()}"):  # Soporte para formato de origen
-            archivos_convertidos = True
-            ruta_completa = os.path.join(carpeta_origen, archivo)
-            imagen = Image.open(ruta_completa)
-            nombre_sin_extension = os.path.splitext(archivo)[0]
-            imagen.save(os.path.join(carpeta_destino, f"{nombre_sin_extension}.{formato_destino.lower()}"), formato_destino)
-    
-    if archivos_convertidos:
-        QMessageBox.information(None, "Éxito", "La conversión de imágenes se completó correctamente.")
-    else:
-        QMessageBox.information(None, "Sin Imágenes", f"No se encontraron imágenes con el formato {formato_origen} para convertir.")
-
 def ejecutar_conversion():
     try:
-        convertir_imagenes()
+        convertir_imagenes(carpeta_origen, carpeta_destino, formato_origen, formato_destino)
     except Exception as e:
         QMessageBox.critical(None, "Error", f"Ocurrió un error: {e}")
 
@@ -79,13 +52,16 @@ ventana.setCentralWidget(widget_central)
 
 # Crear el layout principal
 layout_principal = QVBoxLayout()
+layout_principal.setAlignment(Qt.AlignCenter)  # Centrar el contenido del layout
 
 # Crear el layout para los campos de entrada y botones de carpetas
 layout_carpetas = QVBoxLayout()
+layout_carpetas.setAlignment(Qt.AlignCenter)  # Centrar el contenido del layout
 
 # Etiqueta y campo de entrada para la carpeta de origen
 label_origen = QLabel("Carpeta de Origen:")
 entrada_origen = QLabel()
+entrada_origen.setStyleSheet("border: 1px solid gray; padding: 5px;")  # Borde y padding para el campo de entrada
 boton_origen = QPushButton("Seleccionar Carpeta de Origen")
 boton_origen.setFixedSize(300, 50)  # Tamaño del botón
 boton_origen.setStyleSheet("font-size: 18px;")  # Tamaño del texto
@@ -94,6 +70,7 @@ boton_origen.clicked.connect(seleccionar_carpeta_origen)
 # Etiqueta y campo de entrada para la carpeta de destino
 label_destino = QLabel("Carpeta de Destino:")
 entrada_destino = QLabel()
+entrada_destino.setStyleSheet("border: 1px solid gray; padding: 5px;")  # Borde y padding para el campo de entrada
 boton_destino = QPushButton("Seleccionar Carpeta de Destino")
 boton_destino.setFixedSize(300, 50)  # Tamaño del botón
 boton_destino.setStyleSheet("font-size: 18px;")  # Tamaño del texto
@@ -109,6 +86,7 @@ layout_carpetas.addWidget(boton_destino)
 
 # Crear el layout para los selectores de formato y el botón de conversión
 layout_formato_conversion = QVBoxLayout()
+layout_formato_conversion.setAlignment(Qt.AlignCenter)  # Centrar el contenido del layout
 
 # Crear el combo box para seleccionar el formato de origen
 combo_formato_origen = QComboBox()
@@ -135,7 +113,7 @@ layout_formato_conversion.addWidget(QLabel("a:"))
 layout_formato_conversion.addWidget(combo_formato_destino)
 layout_formato_conversion.addWidget(boton_conversion)
 
-# Añadir layouts al layout principal
+# Añadir los layouts de carpetas y formato al layout principal
 layout_principal.addLayout(layout_carpetas)
 layout_principal.addLayout(layout_formato_conversion)
 
@@ -143,7 +121,7 @@ layout_principal.addLayout(layout_formato_conversion)
 widget_central.setLayout(layout_principal)
 
 # Ajustar tamaño de la ventana
-ventana.resize(600, 400)  # Ajusta a un formato rectangular más grande
+ventana.resize(500, 500)  # Tamaño inicial de la ventana
 
 # Mostrar la ventana
 ventana.show()
