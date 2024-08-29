@@ -12,14 +12,14 @@ print("INICIANDO...")
 
 # ABRIR .DOCX
 doc = Document(
-    'C:/Users/EVENTOS/Desktop/PROJECT_PYTHON/ARCHIVOS_LOCALES/Format_contrato.docx')
+    'C:/Users/ruta/de/archivo/formato.docx')
 
 print("ACCEDIENDO A DB...\n")
 
 # ==========================EXCEL=============================== #
 
 # READ EXCEL
-archivo_excel = 'C:/Users/EVENTOS/Desktop/PROJECT_PYTHON/ARCHIVOS_LOCALES/Formato_contrato.xlsx'
+archivo_excel = 'C:/Users/ruta/de/archivo/archivo.xlsx'
 columnas_requeridas = ['EMBAJADOR', 'N° DOC', 'DIRECCION', 'DISTRITO', 'CIUDAD',
                        'CAMPAÑA', 'DURACIÓN', 'FECHA DE INICIO', 'FECHA DE FIN', 'REMUNERACIÓN']
 lista, time_01 = read_excel_data(archivo_excel, columnas_requeridas)
@@ -101,7 +101,7 @@ for l in list(range(number_doc)):
     # GUARDAR DOC MODIFICADO
     try:
         doc.save(
-            f'C:/Users/EVENTOS/Desktop/PROJECT_PYTHON/ARcHIVOS_LOCALES/GENERATED_DOCS/{name}.docx')
+            f'C:/Users/ruta/guardar/GENERATED_DOCS/{name}.docx')
         print(f"Documento {name}.docx generado correctamente.")
     except Exception as e:
         print(f"Error al guardar el documento: {e}")
