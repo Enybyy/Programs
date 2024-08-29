@@ -109,4 +109,4 @@ El script está diseñado para ser eficiente, manteniendo la calidad y precisió
 
 ## Licencia
 
-Este proyecto está bajo la licencia [Nombre de Licencia]. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+Este proyecto está bajo la licencia NMS.
