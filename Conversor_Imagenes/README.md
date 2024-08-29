@@ -1,112 +1,42 @@
-# Script de Automatización para Generación de Documentos
+## Conversor de Imágenes WebP a PNG
 
-Este proyecto automatiza la generación de documentos en formato .docx a partir de datos extraídos de un archivo Excel.
+Este proyecto es una aplicación sencilla para convertir imágenes en formato WebP a PNG utilizando Python y Tkinter. La conversión es realizada por la biblioteca Pillow y la interfaz gráfica está construida con Tkinter.
 
-## Descripción
+### Descripción
 
-El script realiza las siguientes acciones:
-1. Lee datos desde un archivo Excel.
-2. Reemplaza los marcadores de posición en una plantilla de documento .docx con los datos extraídos.
-3. Guarda los documentos generados en una carpeta específica.
+La aplicación permite seleccionar un directorio que contenga imágenes en formato WebP y convertirlas todas a formato PNG. El directorio de salida se crea automáticamente si no existe.
 
-## Requisitos
+### Requisitos
 
-- **python-docx**: Para manipular documentos .docx.
-- **pandas**: Para leer y procesar el archivo Excel.
+Para ejecutar este proyecto, necesitas tener instaladas las siguientes bibliotecas de Python:
 
-Instala las dependencias con:
+- **Pillow**: Biblioteca para manejar la conversión de imágenes. Se basa en PIL (Python Imaging Library) y proporciona funcionalidades para abrir, manipular y guardar imágenes en varios formatos.
+- **tkinter**: Biblioteca para la creación de interfaces gráficas de usuario (GUI). Normalmente viene preinstalada con Python, pero en algunas distribuciones puede requerir instalación adicional.
 
-```bash
-pip install python-docx pandas
-```
+### Instalación de Dependencias
 
-## Uso
+1. **Pillow**: Puedes instalar Pillow utilizando pip:
 
-1. **Preparar Archivos**
-   - **Archivo de plantilla (.docx)**: Asegúrate de que tu documento de plantilla contenga marcadores de posición como `[NAME]`, `[ID]`, `[ADDRESS]`, etc.
-   - **Archivo Excel**: El archivo Excel debe tener las columnas requeridas, como `Nombre`, `ID`, `Dirección`, etc.
-
-2. **Ejecutar el Script**
-   - Abre una terminal y navega al directorio donde se encuentra el script.
-   - Ejecuta el script con:
-
-   ```bash
-   python nombre_del_script.py
-   ```
-
-   3. **Ingresar Datos**
-   - Cuando se te solicite, ingresa el número de documentos que deseas generar. El script utilizará los datos del archivo Excel para crear los documentos correspondientes.
-
-4. **Verificar Resultados**
-   - Los documentos generados se guardarán en la carpeta especificada con los nombres adecuados.
-
-## Ejemplos de Código
-
-### Leer Datos desde Excel
-
-Para leer datos desde un archivo Excel y seleccionar las columnas necesarias:
-
-```python
-import pandas as pd
-
-# Leer el archivo Excel
-df = pd.read_excel('ruta/a/tu/archivo.xlsx')
-
-# Seleccionar columnas necesarias
-datos = df[['Nombre', 'ID', 'Dirección']].fillna('NaN').values.tolist()
-```
-
-### Marcadores de Posición en Documento .docx
-
-Para reemplazar los marcadores de posición en la plantilla de documento .docx con los datos leídos:
-
-1. **Abrir el Documento de Plantilla**
-   - Utiliza la biblioteca `docx` para abrir el archivo .docx que sirve como plantilla.
-
-2. **Reemplazar Marcadores de Posición**
-   - Itera sobre los párrafos y los runs del documento para buscar y reemplazar los marcadores de posición (por ejemplo, `[NAME]`, `[ID]`) con los datos correspondientes.
-
-   ```python
-   from docx import Document
-
-   # Abrir el documento de plantilla
-   doc = Document('ruta/a/tu/plantilla.docx')
-
-   # Reemplazar marcadores de posición
-   for paragraph in doc.paragraphs:
-       for run in paragraph.runs:
-           if "[NAME]" in run.text:
-               run.text = run.text.replace("[NAME]", "Juan Pérez")
-           if "[ID]" in run.text:
-               run.text = run.text.replace("[ID]", "123456")
-           # Reemplaza otros marcadores de posición de manera similar
+    ```bash
+    pip install pillow
     ```
 
-### Guardar el Documento Modificado
+2. **tkinter**: En la mayoría de las instalaciones de Python, tkinter ya está incluido. Si no está disponible, consulta la documentación de tu distribución de Python para instrucciones específicas sobre cómo instalarlo.
 
-Después de reemplazar los marcadores de posición en el documento .docx, debes guardar el archivo con un nombre específico que refleje los datos incluidos. Esto asegura que cada documento generado sea único y fácil de identificar.
+### Uso
 
-1. **Guardar el Documento con Nombre Específico**
+1. **Ejecuta el script Python**: Para iniciar la aplicación, ejecuta el script Python:
 
-   Utiliza el método `save()` de `docx` para guardar el documento modificado. Asegúrate de que el nombre del archivo incluya datos relevantes (como el nombre del embajador) para facilitar su identificación.
+    ```bash
+    python webp_to_png.py
+    ```
 
-   ```python
-   # Guardar el documento con un nombre específico
-   doc.save('ruta/a/tu/carpeta/Juan_Perez.docx')
-   ```
+2. **Interfaz de Usuario**: Al ejecutar el script, se abrirá una ventana con un botón "Iniciar Conversión". Haz clic en el botón para iniciar la conversión de imágenes.
 
-## Consistencia del Script
+### Generar Ejecutable
 
-El script asegura la consistencia en la generación de documentos mediante varios mecanismos:
+Para generar un archivo ejecutable `.exe` a partir del script, utiliza PyInstaller con el siguiente comando:
 
-1. **Lectura Uniforme**: Extrae datos del archivo Excel seleccionando solo las columnas necesarias para el documento. Esto garantiza que solo se maneje la información relevante y precisa.
-
-2. **Reemplazo Sistemático**: Cambia los marcadores de posición en la plantilla .docx con los datos específicos proporcionados. Esto asegura que cada documento contenga la información correcta en los lugares adecuados.
-
-3. **Guardado Estructurado**: Guarda cada documento con un nombre basado en los datos de entrada, como el nombre del embajador. Esto facilita la organización y la identificación de los documentos generados.
-
-El script está diseñado para ser eficiente, manteniendo la calidad y precisión de los documentos generados a través de un proceso estandarizado para manejar la entrada de datos y la creación de archivos.
-
-## Licencia
-
-Este proyecto está bajo la licencia [Nombre de Licencia]. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+```bash
+pyinstaller --onefile --windowed --distpath exe --workpath exe\build --specpath exe webp_to_png.py
+```
