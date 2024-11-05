@@ -128,3 +128,7 @@ ventana.show()
 
 # Ejecutar la aplicación
 sys.exit(app.exec())
+
+
+# CREAR APP
+# pyinstaller --onefile --windowed --distpath exe --workpath exe\build --specpath exe main.py
