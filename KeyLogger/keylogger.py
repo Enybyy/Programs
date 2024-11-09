@@ -18,3 +18,4 @@ def registrar_tecla(key):
 # Configura el Listener y comienza a capturar teclas
 with Listener(on_press=registrar_tecla) as listener:
     listener.join()
+    
