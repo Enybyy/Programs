@@ -1,7 +1,7 @@
 # IMPORTAR LIBRERIAS
 import time
 from docx import Document
-from FUCTIONS.buscar_excel_02 import read_excel_data
+from functions.buscar_excel_02 import read_excel_data
 
 start_time = time.time()
 
@@ -9,17 +9,15 @@ start_time = time.time()
 
 print("INICIANDO...")
 
-
 # ABRIR .DOCX
-doc = Document(
-    'C:/Users/ruta/de/archivo/formato.docx')
+doc = Document('data/db_base/formato.docx')
 
 print("ACCEDIENDO A DB...\n")
 
 # ==========================EXCEL=============================== #
 
 # READ EXCEL
-archivo_excel = 'C:/Users/ruta/de/archivo/archivo.xlsx'
+archivo_excel = 'data/db_base/Format_contrato.xlsx'
 columnas_requeridas = ['EMBAJADOR', 'N° DOC', 'DIRECCION', 'DISTRITO', 'CIUDAD',
                        'CAMPAÑA', 'DURACIÓN', 'FECHA DE INICIO', 'FECHA DE FIN', 'REMUNERACIÓN']
 lista, time_01 = read_excel_data(archivo_excel, columnas_requeridas)
@@ -42,10 +40,15 @@ for l in list(range(number_doc)):
     district = lista[l][3]
     province = lista[l][4]
     campaign = lista[l][5]
-    days = lista[l][6]
-    start_date = lista[l][7]
-    end_date = lista[l][8]
-    remuneration = lista[l][9]
+    days = str(lista[l][6])
+    start_date = str(lista[l][7])
+    end_date = str(lista[l][8])
+    remuneration = str(lista[l][9])
+    
+    # Conversión de fecha para que salga como 'DD/MM/YYYY'
+    start_date = lista[l][7].strftime('%d/%m/%Y')  # Formato: 10/12/2024
+    end_date = lista[l][8].strftime('%d/%m/%Y')    # Formato: 10/12/2024
+
 
     # RECORRER CADA PARRAFO DEL DOC
     for text in doc.paragraphs:
@@ -101,7 +104,7 @@ for l in list(range(number_doc)):
     # GUARDAR DOC MODIFICADO
     try:
         doc.save(
-            f'C:/Users/ruta/guardar/GENERATED_DOCS/{name}.docx')
+            f'data/doc_generado/{name}.docx')
         print(f"Documento {name}.docx generado correctamente.")
     except Exception as e:
         print(f"Error al guardar el documento: {e}")

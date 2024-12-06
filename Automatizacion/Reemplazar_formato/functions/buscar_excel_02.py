@@ -37,7 +37,7 @@ def read_excel_data(ruta_archivo_excel, columnas_requeridas):
 
 
 # Ejemplo de uso de la función
-archivo_excel = 'C:/Users/EVENTOS/Desktop/PROJECT_PYTHON/ARCHIVOS_LOCALES/Format_contrato.xlsx'
+archivo_excel = 'data/db_base/Format_contrato.xlsx'
 columnas_requeridas = ['EMBAJADOR', 'N° DOC', 'DIRECCION', 'DISTRITO', 'CIUDAD',
                        'CAMPAÑA', 'DURACIÓN', 'FECHA DE INICIO', 'FECHA DE FIN', 'REMUNERACIÓN']
 lista = read_excel_data(archivo_excel, columnas_requeridas)
