@@ -1,5 +1,0 @@
-service_account_file: 'API/credentials.json'
-spreadsheet_id: '1B8T0_TcVck9FPkS_cHYNSK1emLhTzkj-4YTN2-gIs-k'
-sheet_name: 'Hoja1'
-local_database_path: 'data/JORNADA NOV.xlsx'
-output_path: 'data/generated_files/resultados_comparacion.xlsx'
