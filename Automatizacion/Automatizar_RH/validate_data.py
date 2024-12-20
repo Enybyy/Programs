@@ -1,8 +1,10 @@
 import pandas as pd
-from utils import normalize_name
 import os
 import logging
 import yaml
+from utils import normalize_name
+from googleapiclient.discovery import build
+from google.oauth2.service_account import Credentials
 
 # Leer configuraciones desde config.yaml
 def load_config(config_file):
@@ -19,8 +21,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Verificar dependencias necesarias
 def check_dependencies():
     try:
-        import googleapiclient.discovery
-        from google.oauth2.service_account import Credentials
         logging.info("Dependencias verificadas correctamente.")
     except ImportError as e:
         logging.error("Faltan dependencias necesarias. Ejecuta: pip install google-api-python-client google-auth")
@@ -28,14 +28,10 @@ def check_dependencies():
 
 # Leer datos de Google Sheets
 def read_google_sheet(service_account_file, spreadsheet_id, sheet_name):
-    from googleapiclient.discovery import build
-    from google.oauth2.service_account import Credentials
-
     credentials = Credentials.from_service_account_file(
         service_account_file, 
         scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
     )
-
     service = build('sheets', 'v4', credentials=credentials)
     sheet = service.spreadsheets()
 
@@ -56,8 +52,9 @@ def read_google_sheet(service_account_file, spreadsheet_id, sheet_name):
 # Combinar nombres y apellidos
 def combine_names(dataframe):
     try:
-        dataframe['Nombre-Completo'] = dataframe['Apellidos'].str.strip() + ' ' + dataframe['Nombres'].str.strip()
-        dataframe['Nombre-Completo'] = dataframe['Nombre-Completo'].apply(normalize_name)
+        dataframe['Nombre_Completo'] = (
+            dataframe['Apellidos'] + ' ' + dataframe['Nombres']
+        ).apply(normalize_name)
         return dataframe
     except KeyError as e:
         logging.error(f"Columnas faltantes para combinar nombres: {e}")
@@ -70,11 +67,13 @@ def compare_with_local_database(form_data, local_database_path):
         raise FileNotFoundError("Base de datos local no encontrada.")
 
     try:
-        local_data = pd.read_excel(local_database_path)
-        form_data['Nombre Normalizado'] = form_data['Nombre-Completo'].str.strip().str.lower()
-        local_data['Nombre Normalizado'] = local_data['NOMBRE'].str.strip().str.lower()
-        form_data['Coincide'] = form_data['Nombre Normalizado'].isin(local_data['Nombre Normalizado'])
-        form_data.drop(columns=['Nombre Normalizado'], inplace=True)
+        # Leer datos locales con solo las columnas necesarias
+        local_data = pd.read_excel(local_database_path, usecols=['NOMBRE'])
+        # Normalizar las columnas usando normalize_name
+        form_data['Nombre_Completo'] = form_data['Nombre_Completo'].apply(normalize_name)
+        local_data['NOMBRE'] = local_data['NOMBRE'].apply(normalize_name)
+
+        form_data['Coincide'] = form_data['Nombre_Completo'].isin(local_data['NOMBRE'])
         return form_data
     except KeyError as e:
         logging.error(f"Error en las columnas de la base local: {e}")
