@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Resultados - Automatización RH</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Resultados</h1>
+      <p>El proceso ha finalizado. Descarga los archivos que necesites:</p>
+
+      <a class="btn" href="{{ url_for('download_validated') }}">Descargar Datos Validados</a>
+      <a class="btn secondary" href="{{ url_for('download_final') }}">Descargar Datos Finales</a>
+      <a class="btn" href="{{ url_for('download_pdfs') }}">Descargar PDFs (ZIP)</a>
+      <a class="btn secondary" href="{{ url_for('download_final_plus_pdfs') }}">Descargar Excel + PDFs</a>
+
+      <br /><br />
+      <a href="{{ url_for('index') }}">Volver al Inicio</a>
+    </div>
+  </body>
+</html>

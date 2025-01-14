@@ -1,0 +1,8 @@
+Flask==3.1.0                # Para el servidor web
+pandas==2.2.2               # Para manejar y procesar los datos tabulares
+openpyxl==3.1.5             # Para trabajar con archivos Excel
+pdfplumber==0.11.4          # Para extraer texto de los PDFs
+PyYAML==6.0.2               # Para manejar archivos YAML
+Werkzeug==3.1.3             # Backend del servidor Flask
+gunicorn==20.1.0            # Servidor WSGI para producción
+dateparser==1.2.0           # Para interpretar fechas en diferentes formatos
