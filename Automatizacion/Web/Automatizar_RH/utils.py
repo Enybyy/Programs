@@ -1,8 +1,11 @@
 import os
 import unicodedata
 import yaml
+import json
+import base64
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
+
 
 def get_drive_service(service_account_file, scopes):
     """
@@ -15,14 +18,13 @@ def get_drive_service(service_account_file, scopes):
         raise ValueError("Las credenciales no están configuradas. "
                          "Asegúrate de que 'GOOGLE_APPLICATION_CREDENTIALS' o el parámetro 'service_account_file' esté disponible.")
 
-    # Verificar si las credenciales están en formato JSON (Base64 o inline) o como un archivo
-    if credentials_path.startswith("{") or credentials_path.startswith("\"{"):
-        import json
-        # Si las credenciales están en formato JSON como texto
-        credentials_dict = json.loads(credentials_path)
+    try:
+        # Verificar si las credenciales están codificadas en Base64
+        credentials_bytes = base64.b64decode(credentials_path)
+        credentials_dict = json.loads(credentials_bytes.decode("utf-8"))
         credentials = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
-    else:
-        # Si las credenciales están en un archivo
+    except (base64.binascii.Error, json.JSONDecodeError):
+        # Si no es Base64 ni JSON, asumir que es una ruta de archivo
         credentials = Credentials.from_service_account_file(credentials_path, scopes=scopes)
 
     return build('drive', 'v3', credentials=credentials)
