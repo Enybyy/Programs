@@ -197,47 +197,38 @@ def process_and_fill_data(
 
 def run_all_in_memory():
     """
-    1) Pide ruta de form data y base local al usuario.
+    Demostración en consola:
+    1) Pide ruta de form data y base local.
     2) Valida => df_validated
-    3) Descarga PDFs => carpeta temporal
+    3) Descarga PDFs con extract_data_from_validated => extrae texto
     4) Llena datos => df_final
-    5) Lo guarda en un NamedTemporaryFile
+    5) Guarda en un NamedTemporaryFile
     """
     import logging
-    import yaml
-
     logging.basicConfig(level=logging.INFO)
 
-    # Cargar config.yaml para credenciales
-    with open("config.yaml", 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
-
-    form_data_path = input("Ruta de Excel FORM data (ENTER => Google Sheets): ").strip()
+    # Cargar configuraciones
+    config = load_config("config.yaml")
+    form_data_path = input("Ruta de Excel FORM data: ").strip()
     local_db_path = input("Ruta de Excel local (base local): ").strip()
 
-    from validate_data import validate_data
-    from extract_data import extract_data_from_validated
-
     # 1) Validación
-    df_val = validate_data(
-        service_account_file=config['service_account_file'],
-        spreadsheet_id=config['spreadsheet_id'],
-        sheet_name=config['sheet_name'],
-        form_data_path=form_data_path,
-        local_db_path=local_db_path
-    )
+    df_val = validate_data(form_data_path, local_db_path)
 
-    # 2) Extracción PDFs + texto
+    # 2) Descarga PDFs y extrae textos
     tempdir = extract_data_from_validated(config['service_account_file'], df_val)
     text_folder = os.path.join(tempdir, "extracted_text")
 
-    # 3) Llenar datos finales
+    # 3) Llenado final
     df_final = process_and_fill_data(df_val, text_folder, local_db_path)
 
-    # 4) Guardar en un NamedTemporaryFile
+    # 4) Guardar excel final
     with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
         df_final.to_excel(tmp.name, index=False)
-        logging.info(f"Archivo final guardado temporalmente en: {tmp.name}")
+        logging.info(f"Archivo final guardado en: {tmp.name}")
 
 if __name__ == "__main__":
     run_all_in_memory()
+
+# C:\Users\nav\Downloads\ABBY\Eliud\Proyectos\RH\Excel\JORNADA NOV.xlsx
+# C:\Users\nav\Downloads\ELIUD\Descargas express\PAGO DE RH - FORMULARIO (Respuestas).xlsx
