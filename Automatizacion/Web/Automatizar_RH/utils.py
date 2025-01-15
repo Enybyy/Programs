@@ -4,23 +4,25 @@ import yaml
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
-def get_drive_service(scopes):
+def get_drive_service(service_account_file, scopes):
     """
     Crea el servicio de Google Drive utilizando credenciales de la variable
-    de entorno GOOGLE_APPLICATION_CREDENTIALS.
+    de entorno GOOGLE_APPLICATION_CREDENTIALS o un archivo local.
     """
-    credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", service_account_file)
 
     if not credentials_path:
-        raise ValueError("La variable de entorno 'GOOGLE_APPLICATION_CREDENTIALS' no está configurada.")
+        raise ValueError("Las credenciales no están configuradas. "
+                         "Asegúrate de que 'GOOGLE_APPLICATION_CREDENTIALS' o el parámetro 'service_account_file' esté disponible.")
 
-    # Si las credenciales están en formato Base64
+    # Verificar si las credenciales están en formato JSON (Base64 o inline) o como un archivo
     if credentials_path.startswith("{") or credentials_path.startswith("\"{"):
         import json
+        # Si las credenciales están en formato JSON como texto
         credentials_dict = json.loads(credentials_path)
         credentials = Credentials.from_service_account_info(credentials_dict, scopes=scopes)
     else:
-        # Si las credenciales están en un archivo local
+        # Si las credenciales están en un archivo
         credentials = Credentials.from_service_account_file(credentials_path, scopes=scopes)
 
     return build('drive', 'v3', credentials=credentials)

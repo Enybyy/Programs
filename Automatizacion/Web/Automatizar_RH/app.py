@@ -28,7 +28,7 @@ def start_process():
     global CURRENT_VALIDATED_DF, CURRENT_FINAL_DF, CURRENT_TEMP_DIR
 
     logging.info("== Iniciando start_process ==")
-    config = load_config("config.yaml")  # si lo necesitas
+    service_account_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
 
     # Recibir archivos
     form_file = request.files.get("form_data_file")
@@ -36,7 +36,7 @@ def start_process():
 
     # También necesitarás la ruta a credenciales (service_account_file)
     # Podrías subir un archivo o leer de config.yaml
-    service_account_file = config.get("service_account_file")
+    service_account_file = service_account_file.get("service_account_file")
 
     form_data_path = ""
     local_db_path = ""
