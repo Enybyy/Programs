@@ -42,7 +42,6 @@ def start_process():
     local_db_path = ""
 
     if form_file and form_file.filename:
-        import tempfile
         temp_form = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
         form_file.save(temp_form.name)
         form_data_path = temp_form.name
