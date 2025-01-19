@@ -11,6 +11,7 @@ from extract_data import extract_data_from_validated
 from fill_data import process_and_fill_data
 from google.auth.exceptions import DefaultCredentialsError
 from googleapiclient.errors import HttpError
+import base64
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'clave-segura'
@@ -30,11 +31,25 @@ def start_process():
 
     logging.info("== Iniciando start_process ==")
 
-    # Obtener las credenciales desde la variable de entorno
-    service_account_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-    if not service_account_file:
+    # Obtener las credenciales codificadas en base64 desde la variable de entorno
+    encoded_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    
+    if not encoded_credentials:
         logging.error("La variable de entorno 'GOOGLE_APPLICATION_CREDENTIALS' no está configurada.")
         return "Error: las credenciales de Google no están configuradas.", 500
+
+    # Decodificar las credenciales desde base64
+    try:
+        decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
+
+        # Guardar las credenciales decodificadas en un archivo temporal
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
+            temp_file.write(decoded_credentials.encode('utf-8'))
+            service_account_file = temp_file.name
+            logging.info(f"Archivo de credenciales de servicio guardado temporalmente en: {service_account_file}")
+    except Exception as e:
+        logging.error(f"Error al decodificar las credenciales de Google: {e}")
+        return "Error al cargar las credenciales de Google. Verifique su configuración.", 500
 
     # Validar si las credenciales son válidas
     try:
