@@ -1,41 +1,34 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Automatización RH</title>
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proceso de Carga</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // Recibir mensajes de log
+        socket.on('log_message', function(data) {
+            const logContainer = document.getElementById('log-container');
+            const logMessage = document.createElement('div');
+            logMessage.textContent = data.message;
+            logContainer.appendChild(logMessage);
+            logContainer.scrollTop = logContainer.scrollHeight;  // Desplazarse hacia abajo automáticamente
+        });
+    </script>
 </head>
-
 <body>
-  <header>
-    <div class="logo">
-      <h1>Automatización RH</h1>
+    <h1>Proceso de Carga</h1>
+    <div id="log-container" style="height: 300px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px;">
+        <!-- Los mensajes de log aparecerán aquí -->
     </div>
-  </header>
 
-  <main>
-    <div class="container">
-      <p class="subtitle">Selecciona los archivos y haz clic en "Iniciar Proceso".</p>
-      <form id="process-form" action="{{ url_for('start_process') }}" method="POST" enctype="multipart/form-data">
-        <div class="form-group">
-          <label>Archivo de FORM Data (Excel).</label>
-          <input type="file" name="form_data_file" />
-        </div>
-
-        <div class="form-group">
-          <label>Archivo de Base Local (Excel).</label>
-          <input type="file" name="local_db_file" required />
-        </div>
-
-        <button type="submit" class="btn primary">Iniciar Proceso</button>
-      </form>
-    </div>
-  </main>
-
-  <footer>
-    <p>&copy; 2025 Automatización RH. Todos los derechos reservados.</p>
-  </footer>
+    <!-- Aquí agregarías el formulario para subir archivos -->
+    <form action="/start" method="post" enctype="multipart/form-data">
+        <input type="file" name="form_data_file" required>
+        <input type="file" name="local_db_file" required>
+        <button type="submit">Iniciar Proceso</button>
+    </form>
 </body>
 </html>
