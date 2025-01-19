@@ -7,6 +7,9 @@
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
 <body>
   <header>
     <div class="logo">
@@ -19,17 +22,22 @@
       <p class="subtitle">Selecciona los archivos y haz clic en "Iniciar Proceso".</p>
       <form action="{{ url_for('start_process') }}" method="POST" enctype="multipart/form-data">
         <div class="form-group">
-          <label>Archivo de FORM Data (Excel). Déjalo vacío para usar Google Sheets</label>
+          <label>Archivo de FORM Data (Excel).</label>
           <input type="file" name="form_data_file" />
         </div>
 
         <div class="form-group">
-          <label>Archivo de Base Local (Excel) (obligatorio)</label>
+          <label>Archivo de Base Local (Excel).</label>
           <input type="file" name="local_db_file" required />
         </div>
 
         <button type="submit" class="btn primary">Iniciar Proceso</button>
       </form>
+      <!-- Loader -->
+      <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <p>Procesando... Por favor, espera.</p>
+      </div>
     </div>
   </main>
 
