@@ -6,6 +6,22 @@
   <title>Automatización RH</title>
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Agregar el script de Socket.IO -->
+  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+  
+  <style>
+    /* Estilos para la sección de logs */
+    #logs {
+      height: 300px;
+      overflow-y: scroll;
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 20px;
+      font-family: monospace;
+      background-color: #f9f9f9;
+    }
+  </style>
 </head>
 
 <body>
@@ -31,11 +47,34 @@
 
         <button type="submit" class="btn primary">Iniciar Proceso</button>
       </form>
+      
+      <!-- Sección para mostrar los logs -->
+      <div id="logs">
+        <p><em>Esperando logs...</em></p>
+      </div>
     </div>
   </main>
 
   <footer>
     <p>&copy; 2025 Automatización RH. Todos los derechos reservados.</p>
   </footer>
+
+  <!-- Script para conectar y recibir mensajes de Socket.IO -->
+  <script>
+    // Conectar con el servidor de Socket.IO
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    // Escuchar por el evento 'log_message'
+    socket.on('log_message', function(data) {
+      var logArea = document.getElementById('logs');
+      var logMessage = document.createElement('p');
+      logMessage.textContent = data.message;
+      logArea.appendChild(logMessage);
+      
+      // Desplazar el área de logs hacia abajo
+      logArea.scrollTop = logArea.scrollHeight;
+    });
+  </script>
+
 </body>
 </html>

@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file
+from flask_socketio import SocketIO, emit
 import os
 import io
 import zipfile
@@ -15,11 +16,16 @@ import base64
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'clave-segura'
+socketio = SocketIO(app)
 
 # Variables globales para DEMO
 CURRENT_VALIDATED_DF = None
 CURRENT_FINAL_DF = None
 CURRENT_TEMP_DIR = None
+
+# Emitir log a través de SocketIO
+def emit_log(message):
+    socketio.emit('log_message', {'message': message})
 
 @app.route("/")
 def index():
@@ -30,12 +36,14 @@ def start_process():
     global CURRENT_VALIDATED_DF, CURRENT_FINAL_DF, CURRENT_TEMP_DIR
 
     logging.info("== Iniciando start_process ==")
+    emit_log("== Iniciando start_process ==")  # Emitir log al cliente
 
     # Obtener las credenciales codificadas en base64 desde la variable de entorno
     encoded_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     
     if not encoded_credentials:
         logging.error("La variable de entorno 'GOOGLE_APPLICATION_CREDENTIALS' no está configurada.")
+        emit_log("La variable de entorno 'GOOGLE_APPLICATION_CREDENTIALS' no está configurada.")
         return "Error: las credenciales de Google no están configuradas.", 500
 
     # Decodificar las credenciales desde base64
@@ -47,8 +55,10 @@ def start_process():
             temp_file.write(decoded_credentials.encode('utf-8'))
             service_account_file = temp_file.name
             logging.info(f"Archivo de credenciales de servicio guardado temporalmente en: {service_account_file}")
+            emit_log(f"Archivo de credenciales de servicio guardado temporalmente en: {service_account_file}")
     except Exception as e:
         logging.error(f"Error al decodificar las credenciales de Google: {e}")
+        emit_log(f"Error al cargar las credenciales de Google: {e}")
         return "Error al cargar las credenciales de Google. Verifique su configuración.", 500
 
     # Validar si las credenciales son válidas
@@ -56,6 +66,7 @@ def start_process():
         load_config(service_account_file)  # Asegúrate de que este método valida las credenciales
     except DefaultCredentialsError as e:
         logging.error(f"Error al cargar las credenciales de Google: {e}")
+        emit_log(f"Error al cargar las credenciales de Google: {e}")
         return "Error al cargar las credenciales de Google. Verifique su configuración.", 500
 
     # Recibir archivos
@@ -70,32 +81,37 @@ def start_process():
         form_file.save(temp_form.name)
         form_data_path = temp_form.name
         logging.info(f"Form data subido a: {temp_form.name}")
+        emit_log(f"Form data subido a: {temp_form.name}")
 
     if local_file and local_file.filename:
         temp_local = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
         local_file.save(temp_local.name)
         local_db_path = temp_local.name
         logging.info(f"Base local subida a: {temp_local.name}")
+        emit_log(f"Base local subida a: {temp_local.name}")
 
     try:
         # 1) Validar
         df_val = validate_data(form_data_path, local_db_path)
         CURRENT_VALIDATED_DF = df_val
+        emit_log("Validación de datos completa.")
 
         # 2) Descargar PDFs de Drive y extraer texto
         tempdir = extract_data_from_validated(service_account_file, df_val)
         CURRENT_TEMP_DIR = tempdir
+        emit_log("Extracción de datos desde Google Drive completa.")
 
         # 3) Llenar datos
         text_folder = os.path.join(tempdir, "extracted_text")
         df_final = process_and_fill_data(df_val, text_folder, local_db_path)
         CURRENT_FINAL_DF = df_final
+        emit_log("Llenado de datos completado.")
 
     except HttpError as e:
-        logging.error(f"Error al interactuar con la API de Google Drive: {e}")
+        emit_log(f"Error al interactuar con la API de Google Drive: {e}")
         return f"Error al descargar o procesar archivos de Google Drive: {e}", 500
     except Exception as e:
-        logging.error(f"Error inesperado: {e}")
+        emit_log(f"Error inesperado: {e}")
         return f"Ocurrió un error inesperado: {e}", 500
 
     return redirect(url_for("results"))
@@ -217,4 +233,4 @@ def download_final_plus_pdfs():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    app.run(debug=True, port=5000)
+    socketio.run(app, debug=True, port=5000)
