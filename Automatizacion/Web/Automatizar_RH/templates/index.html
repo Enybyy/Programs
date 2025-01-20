@@ -62,7 +62,7 @@
   <!-- Script para conectar y recibir mensajes de Socket.IO -->
   <script>
     // Conectar con el servidor de Socket.IO
-    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var socket = io.connect('https://' + document.domain + ':' + location.port);
 
     // Escuchar por el evento 'log_message'
     socket.on('log_message', function(data) {
