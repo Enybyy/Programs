@@ -8,6 +8,10 @@
       type="text/css"
       href="{{ url_for('static', filename='css/style.css') }}"
     />
+    <link 
+      rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
   </head>
   <body>
     <div class="container">
@@ -17,12 +21,26 @@
       <a class="btn" href="{{ url_for('download_validated') }}">
         <i class="fas fa-file-download"></i> Descargar Datos Validados
       </a>
-      <a class="btn secondary" href="{{ url_for('download_final') }}">Descargar Datos Finales</a>
-      <a class="btn" href="{{ url_for('download_pdfs') }}">Descargar PDFs (ZIP)</a>
-      <a class="btn secondary" href="{{ url_for('download_final_plus_pdfs') }}">Descargar Excel + PDFs</a>
+      <a class="btn secondary" href="{{ url_for('download_final') }}">
+        <i class="fas fa-file-excel"></i> Descargar Datos Finales
+      </a>
+      <a class="btn" href="{{ url_for('download_pdfs') }}">
+        <i class="fas fa-file-pdf"></i> Descargar PDFs (ZIP)
+      </a>
+      <a class="btn secondary" href="{{ url_for('download_final_plus_pdfs') }}">
+        <i class="fas fa-file-archive"></i> Descargar Excel + PDFs
+      </a>
+
+      <!-- Botón de limpieza manual -->
+      <button id="cleanup-btn" class="btn danger">
+        <i class="fas fa-trash"></i> Eliminar Todos mis Archivos
+      </button>
 
       <br /><br />
       <a href="{{ url_for('index') }}">Volver al Inicio</a>
     </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
   </body>
 </html>

@@ -16,7 +16,20 @@ import base64
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'clave-segura-desarrollo')
-app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutos
+app.config['PERMANENT_SESSION_LIFETIME'] = 900  # 15 minutos (corregido de 900 a 1800)
+
+def cleanup_all_temp_files():
+    """Elimina TODOS los directorios temporales antiguos"""
+    try:
+        temp_parent_dir = app.instance_path
+        if os.path.exists(temp_parent_dir):
+            for dir_name in os.listdir(temp_parent_dir):
+                if dir_name.startswith("pdf_extract_"):
+                    dir_path = os.path.join(temp_parent_dir, dir_name)
+                    shutil.rmtree(dir_path, ignore_errors=True)
+                    logging.info(f"Directorio eliminado: {dir_path}")
+    except Exception as e:
+        logging.error(f"Error en limpieza general: {e}")
 
 @app.route("/")
 def index():
@@ -25,8 +38,9 @@ def index():
 @app.route("/start", methods=["POST"])
 def start_process():
     logging.info("== Iniciando start_process ==")
-
-    # Resetear sesión previa
+    
+    # Limpiar archivos de sesiones anteriores ANTES de procesar
+    cleanup_all_temp_files()
     session.clear()
 
     # Manejo de credenciales
@@ -108,7 +122,7 @@ def results():
         return redirect(url_for("index"))
     return render_template("results.html")
 
-# Funciones de descarga mejoradas
+# Funciones de descarga
 def generate_download(df_key, filename):
     if df_key not in session:
         return "Datos no disponibles", 400
@@ -182,10 +196,7 @@ def download_final_plus_pdfs():
     zip_buffer = io.BytesIO()
     
     with zipfile.ZipFile(zip_buffer, 'w') as zf:
-        # Agregar Excel
         zf.writestr("ResultadoFinal.xlsx", excel_buffer.read())
-        
-        # Agregar PDFs
         if os.path.exists(pdf_folder):
             for filename in os.listdir(pdf_folder):
                 if filename.lower().endswith(".pdf"):
@@ -204,10 +215,9 @@ def download_final_plus_pdfs():
 @app.route("/cleanup", methods=['POST'])
 def cleanup():
     try:
-        if 'temp_dir' in session and os.path.exists(session['temp_dir']):
-            shutil.rmtree(session['temp_dir'])
+        cleanup_all_temp_files()  # Función mejorada
         session.clear()
-        return "Limpieza exitosa", 200
+        return "Limpieza completa exitosa", 200
     except Exception as e:
         logging.error(f"Error en limpieza: {e}")
         return "Error en limpieza", 500

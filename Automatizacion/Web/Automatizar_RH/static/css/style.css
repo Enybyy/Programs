@@ -67,6 +67,7 @@ input[type="file"] {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.3s ease;
+  margin: 5px 0;
 }
 
 .btn:hover {
@@ -79,6 +80,15 @@ input[type="file"] {
 
 .btn.secondary:hover {
   background: #5a6268;
+}
+
+.btn.danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn.danger:hover {
+  background-color: #bb2d3b;
 }
 
 /* Footer */
