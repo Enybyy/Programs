@@ -16,7 +16,7 @@ import base64
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'clave-segura-desarrollo')
-app.config['PERMANENT_SESSION_LIFETIME'] = 900  # 15 minutos (corregido de 900 a 1800)
+app.config['PERMANENT_SESSION_LIFETIME'] = 900  # 15 minutos
 
 def cleanup_all_temp_files():
     """Elimina TODOS los directorios temporales antiguos"""
@@ -181,22 +181,30 @@ def download_pdfs():
     
 @app.route("/download-final-plus-pdfs")
 def download_final_plus_pdfs():
-    if 'final_df' not in session or 'temp_dir' not in session:
+    if 'final_df' not in session or 'validated_df' not in session or 'temp_dir' not in session:
         return "No hay datos disponibles", 400
 
-    # Convertir DataFrame a Excel en memoria
-    df_final = pd.read_json(session['final_df'])
-    excel_buffer = io.BytesIO()
-    with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-        df_final.to_excel(writer, index=False)
-    excel_buffer.seek(0)
-
-    # Crear ZIP con Excel y PDFs
-    pdf_folder = os.path.join(session['temp_dir'], "pdfs")
+    # Crear un archivo ZIP en memoria
     zip_buffer = io.BytesIO()
-    
     with zipfile.ZipFile(zip_buffer, 'w') as zf:
-        zf.writestr("ResultadoFinal.xlsx", excel_buffer.read())
+        # 1. Agregar ResultadoFinal.xlsx
+        df_final = pd.read_json(session['final_df'])
+        excel_final_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_final_buffer, engine='openpyxl') as writer:
+            df_final.to_excel(writer, index=False)
+        excel_final_buffer.seek(0)
+        zf.writestr("ResultadoFinal.xlsx", excel_final_buffer.read())
+
+        # 2. Agregar DatosValidados.xlsx
+        df_validated = pd.read_json(session['validated_df'])
+        excel_validated_buffer = io.BytesIO()
+        with pd.ExcelWriter(excel_validated_buffer, engine='openpyxl') as writer:
+            df_validated.to_excel(writer, index=False)
+        excel_validated_buffer.seek(0)
+        zf.writestr("DatosValidados.xlsx", excel_validated_buffer.read())
+
+        # 3. Agregar PDFs
+        pdf_folder = os.path.join(session['temp_dir'], "pdfs")
         if os.path.exists(pdf_folder):
             for filename in os.listdir(pdf_folder):
                 if filename.lower().endswith(".pdf"):
