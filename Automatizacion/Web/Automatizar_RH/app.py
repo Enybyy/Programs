@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file
+from flask import Flask, render_template, request, redirect, url_for, send_file, session
 import os
 import io
 import zipfile
 import tempfile
 import logging
 import pandas as pd
+import shutil
 from utils import load_config
 from validate_data import validate_data
 from extract_data import extract_data_from_validated
@@ -14,12 +15,8 @@ from googleapiclient.errors import HttpError
 import base64
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'clave-segura'
-
-# Variables globales para DEMO
-CURRENT_VALIDATED_DF = None
-CURRENT_FINAL_DF = None
-CURRENT_TEMP_DIR = None
+app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'clave-segura-desarrollo')
+app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutos
 
 @app.route("/")
 def index():
@@ -27,193 +24,164 @@ def index():
 
 @app.route("/start", methods=["POST"])
 def start_process():
-    global CURRENT_VALIDATED_DF, CURRENT_FINAL_DF, CURRENT_TEMP_DIR
-
     logging.info("== Iniciando start_process ==")
 
-    # Obtener las credenciales codificadas en base64 desde la variable de entorno
-    encoded_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    
-    if not encoded_credentials:
-        logging.error("La variable de entorno 'GOOGLE_APPLICATION_CREDENTIALS' no está configurada.")
-        return "Error: las credenciales de Google no están configuradas.", 500
+    # Resetear sesión previa
+    session.clear()
 
-    # Decodificar las credenciales desde base64
+    # Manejo de credenciales
+    encoded_credentials = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    if not encoded_credentials:
+        logging.error("Credenciales de Google no configuradas")
+        return "Error: Configuración de Google incompleta", 500
+
     try:
         decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
-
-        # Guardar las credenciales decodificadas en un archivo temporal
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".json") as temp_file:
-            temp_file.write(decoded_credentials.encode('utf-8'))
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=".json") as temp_file:
+            temp_file.write(decoded_credentials)
             service_account_file = temp_file.name
-            logging.info(f"Archivo de credenciales de servicio guardado temporalmente en: {service_account_file}")
     except Exception as e:
-        logging.error(f"Error al decodificar las credenciales de Google: {e}")
-        return "Error al cargar las credenciales de Google. Verifique su configuración.", 500
+        logging.error(f"Error decodificando credenciales: {e}")
+        return "Error procesando credenciales", 500
 
-    # Validar si las credenciales son válidas
+    # Validar credenciales
     try:
-        load_config(service_account_file)  # Asegúrate de que este método valida las credenciales
+        load_config(service_account_file)
     except DefaultCredentialsError as e:
-        logging.error(f"Error al cargar las credenciales de Google: {e}")
-        return "Error al cargar las credenciales de Google. Verifique su configuración.", 500
+        logging.error(f"Credenciales inválidas: {e}")
+        return "Credenciales de Google inválidas", 500
 
-    # Recibir archivos
+    # Procesar archivos subidos
     form_file = request.files.get("form_data_file")
     local_file = request.files.get("local_db_file")
-
-    form_data_path = ""
-    local_db_path = ""
-
-    if form_file and form_file.filename:
-        temp_form = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
-        form_file.save(temp_form.name)
-        form_data_path = temp_form.name
-        logging.info(f"Form data subido a: {temp_form.name}")
-
-    if local_file and local_file.filename:
-        temp_local = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
-        local_file.save(temp_local.name)
-        local_db_path = temp_local.name
-        logging.info(f"Base local subida a: {temp_local.name}")
-
+    
     try:
-        # 1) Validar
+        # Guardar archivos temporalmente
+        temp_files = []
+        form_data_path = local_db_path = ""
+        
+        if form_file and form_file.filename:
+            temp_form = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
+            form_file.save(temp_form.name)
+            form_data_path = temp_form.name
+            temp_files.append(temp_form.name)
+            logging.info(f"Form data guardado en: {temp_form.name}")
+
+        if local_file and local_file.filename:
+            temp_local = tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False)
+            local_file.save(temp_local.name)
+            local_db_path = temp_local.name
+            temp_files.append(temp_local.name)
+            logging.info(f"Base local guardada en: {temp_local.name}")
+
+        # Proceso principal
         df_val = validate_data(form_data_path, local_db_path)
-        CURRENT_VALIDATED_DF = df_val
-
-        # 2) Descargar PDFs de Drive y extraer texto
         tempdir = extract_data_from_validated(service_account_file, df_val)
-        CURRENT_TEMP_DIR = tempdir
-
-        # 3) Llenar datos
         text_folder = os.path.join(tempdir, "extracted_text")
         df_final = process_and_fill_data(df_val, text_folder, local_db_path)
-        CURRENT_FINAL_DF = df_final
+
+        # Almacenar en sesión
+        session['validated_df'] = df_val.to_json()
+        session['final_df'] = df_final.to_json()
+        session['temp_dir'] = tempdir
+        session['service_account_file'] = service_account_file
 
     except HttpError as e:
-        logging.error(f"Error al interactuar con la API de Google Drive: {e}")
-        return f"Error al descargar o procesar archivos de Google Drive: {e}", 500
+        logging.error(f"Error Google Drive: {e}")
+        return f"Error en Google Drive: {e}", 500
     except Exception as e:
-        logging.error(f"Error inesperado: {e}")
-        return f"Ocurrió un error inesperado: {e}", 500
+        logging.error(f"Error general: {e}", exc_info=True)
+        return f"Error inesperado: {e}", 500
+    finally:
+        # Limpiar archivos temporales
+        for f in temp_files:
+            if os.path.exists(f):
+                os.unlink(f)
+        if 'service_account_file' in locals():
+            os.unlink(service_account_file)
 
     return redirect(url_for("results"))
 
 @app.route("/results")
 def results():
+    if 'validated_df' not in session:
+        return redirect(url_for("index"))
     return render_template("results.html")
+
+# Funciones de descarga mejoradas
+def generate_download(df_key, filename):
+    if df_key not in session:
+        return "Datos no disponibles", 400
+    
+    try:
+        df = pd.read_json(session[df_key])
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False)
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name=filename,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    except Exception as e:
+        logging.error(f"Error generando {filename}: {e}")
+        return "Error generando archivo", 500
 
 @app.route("/download-validated")
 def download_validated():
-    global CURRENT_VALIDATED_DF
-    if CURRENT_VALIDATED_DF is None or CURRENT_VALIDATED_DF.empty:
-        return "No hay datos validados en memoria.", 400
-
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        CURRENT_VALIDATED_DF.to_excel(writer, index=False)
-    output.seek(0)
-    return send_file(
-        output,
-        as_attachment=True,
-        download_name="DatosValidados.xlsx",
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    return generate_download('validated_df', "DatosValidados.xlsx")
 
 @app.route("/download-final")
 def download_final():
-    global CURRENT_FINAL_DF
-    if CURRENT_FINAL_DF is None or CURRENT_FINAL_DF.empty:
-        return "No hay datos finales en memoria.", 400
-
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        CURRENT_FINAL_DF.to_excel(writer, index=False)
-    output.seek(0)
-    return send_file(
-        output,
-        as_attachment=True,
-        download_name="ResultadoFinal.xlsx",
-        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    return generate_download('final_df', "ResultadoFinal.xlsx")
 
 @app.route("/download-pdfs")
 def download_pdfs():
-    global CURRENT_TEMP_DIR
-    if not CURRENT_TEMP_DIR or not os.path.exists(CURRENT_TEMP_DIR):
-        return "No hay PDFs", 400
+    if 'temp_dir' not in session or not os.path.exists(session['temp_dir']):
+        return "No hay PDFs disponibles", 400
 
-    pdf_folder = os.path.join(CURRENT_TEMP_DIR, "pdfs")
+    pdf_folder = os.path.join(session['temp_dir'], "pdfs")
     if not os.path.exists(pdf_folder):
-        return "No se encontraron PDFs.", 400
+        return "Carpeta de PDFs no encontrada", 400
 
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, 'w') as zf:
-        for filename in os.listdir(pdf_folder):
-            if filename.lower().endswith(".pdf"):
-                pdf_path = os.path.join(pdf_folder, filename)
-                # Validar que el archivo no esté vacío
-                if os.path.getsize(pdf_path) > 0:
-                    try:
-                        with open(pdf_path, "rb") as f:
-                            zf.writestr(filename, f.read())
-                    except Exception as e:
-                        logging.warning(f"Error al procesar el archivo {filename}: {e}")
-                else:
-                    logging.warning(f"Archivo {filename} está vacío y será omitido.")
-
-    zip_buffer.seek(0)
-    return send_file(
-        zip_buffer,
-        as_attachment=True,
-        download_name="PDFsDescargados.zip",
-        mimetype="application/zip"
-    )
-
-@app.route("/download-final-plus-pdfs")
-def download_final_plus_pdfs():
-    global CURRENT_FINAL_DF, CURRENT_TEMP_DIR
-    if CURRENT_FINAL_DF is None or CURRENT_FINAL_DF.empty:
-        return "No hay datos finales en memoria.", 400
-    if not CURRENT_TEMP_DIR or not os.path.exists(CURRENT_TEMP_DIR):
-        return "No hay PDFs descargados.", 400
-
-    pdf_folder = os.path.join(CURRENT_TEMP_DIR, "pdfs")
-
-    # Convertir el DataFrame final a un archivo Excel en memoria
-    excel_buffer = io.BytesIO()
-    with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-        CURRENT_FINAL_DF.to_excel(writer, index=False)
-    excel_buffer.seek(0)
-
-    # Crear un archivo ZIP en memoria
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, 'w') as zf:
-        # Agregar el Excel al ZIP
-        zf.writestr("ResultadoFinal.xlsx", excel_buffer.read())
-
-        # Agregar los PDFs al ZIP
-        if os.path.exists(pdf_folder):
+    try:
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as zf:
             for filename in os.listdir(pdf_folder):
                 if filename.lower().endswith(".pdf"):
                     pdf_path = os.path.join(pdf_folder, filename)
                     if os.path.getsize(pdf_path) > 0:
-                        try:
-                            with open(pdf_path, "rb") as f:
-                                zf.writestr(f"pdfs/{filename}", f.read())
-                        except Exception as e:
-                            logging.warning(f"Error al procesar el archivo {filename}: {e}")
-                    else:
-                        logging.warning(f"Archivo {filename} está vacío y será omitido.")
+                        zf.write(pdf_path, arcname=filename)
+        zip_buffer.seek(0)
+        return send_file(
+            zip_buffer,
+            as_attachment=True,
+            download_name="PDFsDescargados.zip",
+            mimetype="application/zip"
+        )
+    except Exception as e:
+        logging.error(f"Error generando ZIP: {e}")
+        return "Error comprimiendo archivos", 500
 
-    zip_buffer.seek(0)
-    return send_file(
-        zip_buffer,
-        as_attachment=True,
-        download_name="ResultadoFinal_y_PDFs.zip",
-        mimetype="application/zip"
-    )
+@app.route("/cleanup", methods=['POST'])
+def cleanup():
+    try:
+        if 'temp_dir' in session and os.path.exists(session['temp_dir']):
+            shutil.rmtree(session['temp_dir'])
+        session.clear()
+        return "Limpieza exitosa", 200
+    except Exception as e:
+        logging.error(f"Error en limpieza: {e}")
+        return "Error en limpieza", 500
+
+@app.after_request
+def add_cache_headers(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
