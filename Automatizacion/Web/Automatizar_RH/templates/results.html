@@ -6,7 +6,7 @@
     <link
       rel="stylesheet"
       type="text/css"
-      href="{{ url_for('static', filename='css/style.css') }}"
+      href="{{ url_for('static', filename='style.css') }}"
     />
   </head>
   <body>
@@ -14,9 +14,7 @@
       <h1>Resultados</h1>
       <p>El proceso ha finalizado. Descarga los archivos que necesites:</p>
 
-      <a class="btn" href="{{ url_for('download_validated') }}">
-        <i class="fas fa-file-download"></i> Descargar Datos Validados
-      </a>
+      <a class="btn" href="{{ url_for('download_validated') }}">Descargar Datos Validados</a>
       <a class="btn secondary" href="{{ url_for('download_final') }}">Descargar Datos Finales</a>
       <a class="btn" href="{{ url_for('download_pdfs') }}">Descargar PDFs (ZIP)</a>
       <a class="btn secondary" href="{{ url_for('download_final_plus_pdfs') }}">Descargar Excel + PDFs</a>
