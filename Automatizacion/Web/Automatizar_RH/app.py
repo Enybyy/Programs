@@ -164,6 +164,42 @@ def download_pdfs():
     except Exception as e:
         logging.error(f"Error generando ZIP: {e}")
         return "Error comprimiendo archivos", 500
+    
+@app.route("/download-final-plus-pdfs")
+def download_final_plus_pdfs():
+    if 'final_df' not in session or 'temp_dir' not in session:
+        return "No hay datos disponibles", 400
+
+    # Convertir DataFrame a Excel en memoria
+    df_final = pd.read_json(session['final_df'])
+    excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+        df_final.to_excel(writer, index=False)
+    excel_buffer.seek(0)
+
+    # Crear ZIP con Excel y PDFs
+    pdf_folder = os.path.join(session['temp_dir'], "pdfs")
+    zip_buffer = io.BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, 'w') as zf:
+        # Agregar Excel
+        zf.writestr("ResultadoFinal.xlsx", excel_buffer.read())
+        
+        # Agregar PDFs
+        if os.path.exists(pdf_folder):
+            for filename in os.listdir(pdf_folder):
+                if filename.lower().endswith(".pdf"):
+                    pdf_path = os.path.join(pdf_folder, filename)
+                    if os.path.getsize(pdf_path) > 0:
+                        zf.write(pdf_path, f"pdfs/{filename}")
+
+    zip_buffer.seek(0)
+    return send_file(
+        zip_buffer,
+        as_attachment=True,
+        download_name="ResultadoFinal_y_PDFs.zip",
+        mimetype="application/zip"
+    )
 
 @app.route("/cleanup", methods=['POST'])
 def cleanup():
