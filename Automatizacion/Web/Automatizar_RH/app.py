@@ -13,10 +13,11 @@ from fill_data import process_and_fill_data
 from google.auth.exceptions import DefaultCredentialsError
 from googleapiclient.errors import HttpError
 import base64
+from io import StringIO
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'clave-segura-desarrollo')
-app.config['PERMANENT_SESSION_LIFETIME'] = 900  # 15 minutos
+app.config['PERMANENT_SESSION_LIFETIME'] = 900  # 15  minutos
 
 def cleanup_all_temp_files():
     """Elimina TODOS los directorios temporales antiguos"""
@@ -128,7 +129,7 @@ def generate_download(df_key, filename):
         return "Datos no disponibles", 400
     
     try:
-        df = pd.read_json(session[df_key])
+        df = pd.read_json(StringIO(session[df_key]))  # <--- Corregido aquí
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False)

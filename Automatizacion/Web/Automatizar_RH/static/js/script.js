@@ -1,12 +1,3 @@
-// Limpieza automática al cerrar/recargar
-window.addEventListener('beforeunload', function(e) {
-    fetch('/cleanup', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin'
-    }).catch(error => console.log('Error en limpieza automática:', error));
-});
-
 // Limpieza manual
 document.getElementById('cleanup-btn').addEventListener('click', function() {
     fetch('/cleanup', { 
