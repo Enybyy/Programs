@@ -146,40 +146,46 @@ def generate_download(df_key, filename):
 
 @app.route("/download-validated")
 def download_validated():
-    return generate_download('validated_df', "DatosValidados.xlsx")
+    if 'validated_df' not in session:
+        return "Datos no disponibles", 400
+    
+    try:
+        df = pd.read_json(StringIO(session['validated_df']))  # <--- Corregido aquí
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False)
+        output.seek(0)
+        return send_file(
+            output,
+            as_attachment=True,
+            download_name="DatosValidados.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    except Exception as e:
+        logging.error(f"Error generando DatosValidados.xlsx: {e}")
+        return "Error generando archivo", 500
 
 @app.route("/download-final")
 def download_final():
-    return generate_download('final_df', "ResultadoFinal.xlsx")
-
-@app.route("/download-pdfs")
-def download_pdfs():
-    if 'temp_dir' not in session or not os.path.exists(session['temp_dir']):
-        return "No hay PDFs disponibles", 400
-
-    pdf_folder = os.path.join(session['temp_dir'], "pdfs")
-    if not os.path.exists(pdf_folder):
-        return "Carpeta de PDFs no encontrada", 400
-
+    if 'final_df' not in session:
+        return "Datos no disponibles", 400
+    
     try:
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zf:
-            for filename in os.listdir(pdf_folder):
-                if filename.lower().endswith(".pdf"):
-                    pdf_path = os.path.join(pdf_folder, filename)
-                    if os.path.getsize(pdf_path) > 0:
-                        zf.write(pdf_path, arcname=filename)
-        zip_buffer.seek(0)
+        df = pd.read_json(StringIO(session['final_df']))  # <--- Corregido aquí
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False)
+        output.seek(0)
         return send_file(
-            zip_buffer,
+            output,
             as_attachment=True,
-            download_name="PDFsDescargados.zip",
-            mimetype="application/zip"
+            download_name="ResultadoFinal.xlsx",
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
     except Exception as e:
-        logging.error(f"Error generando ZIP: {e}")
-        return "Error comprimiendo archivos", 500
-    
+        logging.error(f"Error generando ResultadoFinal.xlsx: {e}")
+        return "Error generando archivo", 500
+
 @app.route("/download-final-plus-pdfs")
 def download_final_plus_pdfs():
     if 'final_df' not in session or 'validated_df' not in session or 'temp_dir' not in session:
@@ -189,7 +195,7 @@ def download_final_plus_pdfs():
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'w') as zf:
         # 1. Agregar ResultadoFinal.xlsx
-        df_final = pd.read_json(session['final_df'])
+        df_final = pd.read_json(StringIO(session['final_df']))  # <--- Corregido aquí
         excel_final_buffer = io.BytesIO()
         with pd.ExcelWriter(excel_final_buffer, engine='openpyxl') as writer:
             df_final.to_excel(writer, index=False)
@@ -197,7 +203,7 @@ def download_final_plus_pdfs():
         zf.writestr("ResultadoFinal.xlsx", excel_final_buffer.read())
 
         # 2. Agregar DatosValidados.xlsx
-        df_validated = pd.read_json(session['validated_df'])
+        df_validated = pd.read_json(StringIO(session['validated_df']))  # <--- Corregido aquí
         excel_validated_buffer = io.BytesIO()
         with pd.ExcelWriter(excel_validated_buffer, engine='openpyxl') as writer:
             df_validated.to_excel(writer, index=False)
