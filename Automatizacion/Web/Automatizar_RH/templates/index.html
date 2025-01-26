@@ -1,28 +1,41 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Automatización RH</title>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-  </head>
-  <body>
-    <div class="container">
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automatización RH</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <header>
+    <div class="logo">
       <h1>Automatización RH</h1>
-      <p>Selecciona los archivos y haz clic en "Iniciar Proceso".</p>
+    </div>
+  </header>
 
-      <form action="{{ url_for('start_process') }}" method="POST" enctype="multipart/form-data">
-        <label>Archivo de FORM Data (Excel). Déjalo vacío para usar Google Sheets</label><br />
-        <input type="file" name="form_data_file" /><br /><br />
+  <main>
+    <div class="container">
+      <p class="subtitle">Selecciona los archivos y haz clic en "Iniciar Proceso".</p>
+      <form id="process-form" action="{{ url_for('start_process') }}" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label>Archivo de FORM Data (Excel).</label>
+          <input type="file" name="form_data_file" />
+        </div>
 
-        <label>Archivo de Base Local (Excel) (obligatorio)</label><br />
-        <input type="file" name="local_db_file" required /><br /><br />
+        <div class="form-group">
+          <label>Archivo de Base Local (Excel).</label>
+          <input type="file" name="local_db_file" required />
+        </div>
 
-        <button type="submit" class="btn">Iniciar Proceso</button>
+        <button type="submit" class="btn primary">Iniciar Proceso</button>
       </form>
     </div>
-  </body>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Automatización RH. Todos los derechos reservados.</p>
+  </footer>
+</body>
 </html>
