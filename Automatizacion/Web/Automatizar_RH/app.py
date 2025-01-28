@@ -226,6 +226,32 @@ def download_final_plus_pdfs():
         download_name="ResultadoFinal_y_PDFs.zip",
         mimetype="application/zip"
     )
+    
+@app.route("/download-pdfs")
+def download_pdfs():
+    if 'temp_dir' not in session:
+        return "No hay datos disponibles", 400
+
+    # Crear un archivo ZIP en memoria solo con los PDFs
+    pdf_folder = os.path.join(session['temp_dir'], "pdfs")
+    if not os.path.exists(pdf_folder):
+        return "No se encontraron PDFs para descargar", 404
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w') as zf:
+        for filename in os.listdir(pdf_folder):
+            if filename.lower().endswith(".pdf"):
+                pdf_path = os.path.join(pdf_folder, filename)
+                if os.path.getsize(pdf_path) > 0:
+                    zf.write(pdf_path, f"pdfs/{filename}")
+
+    zip_buffer.seek(0)
+    return send_file(
+        zip_buffer,
+        as_attachment=True,
+        download_name="PDFs_Descargados.zip",
+        mimetype="application/zip"
+    )
 
 @app.route("/cleanup", methods=['POST'])
 def cleanup():
