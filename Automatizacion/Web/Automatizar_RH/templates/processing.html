@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Procesando - Automatización RH</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
+    <style>
+      /* Estilos básicos para la consola de logs */
+      .log-container {
+        background: #f4f4f4;
+        border: 1px solid #ccc;
+        padding: 10px;
+        height: 300px;
+        overflow-y: scroll;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Procesando...</h1>
+      <div class="log-container">
+        <pre id="log-output"></pre>
+      </div>
+    </div>
+    <script>
+      const logOutput = document.getElementById('log-output');
+      const evtSource = new EventSource("/logs");
+      evtSource.onmessage = function(e) {
+          logOutput.textContent += e.data + "\n";
+          logOutput.scrollTop = logOutput.scrollHeight;
+      };
+
+      // Función para consultar el estado del proceso cada 2 segundos
+      function checkStatus(){
+          fetch("/process_status")
+            .then(response => response.json())
+            .then(data => {
+                if(data.finished){
+                    // Si hubo error, se podría mostrar un mensaje; de lo contrario, redirige a resultados
+                    window.location.href = "/results";
+                }
+            });
+      }
+      setInterval(checkStatus, 2000);
+    </script>
+  </body>
+</html>
