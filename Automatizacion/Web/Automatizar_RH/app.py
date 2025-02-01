@@ -182,6 +182,28 @@ def download_validated():
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index=False)
+            
+            # ========= NUEVO: FORZAR FORMATO DE TEXTO =========
+            worksheet = writer.sheets['Sheet1']
+            from openpyxl.utils import get_column_letter
+            
+            text_columns = [
+                'Número de cuenta bancaria',
+                'Número de cuenta Interbancaria',
+                'RUC',
+                'Nro. de Documento',
+                'Número de cuenta bancaria (tercero)',
+                'Número de cuenta Interbancaria (tercero)'
+            ]
+            
+            for col_name in text_columns:
+                if col_name in df.columns:
+                    col_idx = df.columns.get_loc(col_name)
+                    col_letter = get_column_letter(col_idx + 1)
+                    for cell in worksheet[f'{col_letter}2:{col_letter}{len(df)+1}']:
+                        cell[0].number_format = '@'  # Formato de texto
+            # ==================================================
+
         output.seek(0)
         logging.info(f"✅ [Descarga] Archivo de datos validados generado. Registros: {len(df)}")
         return send_file(

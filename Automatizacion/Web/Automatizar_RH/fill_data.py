@@ -79,6 +79,25 @@ def process_and_fill_data(
     try:
         base_local = pd.read_excel(local_db_path, dtype=dtype_for_base_local)
         logging.info("✅  [Llenado] Base local leída correctamente")
+        
+        # ========= NUEVO: LIMPIEZA DE DATOS NUMÉRICOS =========
+        numeric_columns = [
+            'NRO DE CUENTA', 'CCI', 'NRO DE RUC',
+            'NRO DE DOCUMENTO', 'NRO DOC TERCERO'
+        ]
+        
+        for col in numeric_columns:
+            if col in base_local.columns:
+                # Eliminar caracteres no numéricos y espacios
+                base_local[col] = base_local[col].astype(str).str.replace(r'[^\d]', '', regex=True)
+        
+        # Formatear fechas
+        if 'FECHA DE EMISION' in base_local.columns:
+            base_local['FECHA DE EMISION'] = pd.to_datetime(
+                base_local['FECHA DE EMISION'], errors='coerce'
+            ).dt.strftime('%d/%m/%Y')
+        # ======================================================
+
     except Exception as e:
         logging.error(f"❌  [Llenado] Error al leer la base local: {e}", exc_info=True)
         raise e

@@ -64,7 +64,19 @@ def validate_data(form_data_path: str, local_db_path: str) -> pd.DataFrame:
         raise FileNotFoundError(error_msg)
 
     try:
-        df_forms = pd.read_excel(form_data_path)
+        # LEER CON FORMATOS ESPECÍFICOS
+        df_forms = pd.read_excel(
+            form_data_path,
+            dtype={
+                'Número de cuenta bancaria': str,
+                'Número de cuenta Interbancaria': str,
+                'Nro. de Documento': str,
+                'RUC': str,
+                'Fecha de Emisión': str,
+                'Número de cuenta bancaria (tercero)': str,
+                'Número de cuenta Interbancaria (tercero)': str
+            }
+        )
         logging.info("✅ [Validación] Archivo de form data leído correctamente")
     except Exception as e:
         logging.error(f"❌ [Validación] Error al leer el archivo de form data: {str(e)}", exc_info=True)
