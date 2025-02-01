@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file, session
+from flask import Flask, render_template, request, redirect, url_for, send_file, session, Response
 import os
 import io
 import zipfile
@@ -14,10 +14,27 @@ from google.auth.exceptions import DefaultCredentialsError
 from googleapiclient.errors import HttpError
 import base64
 from io import StringIO
+import queue
+import threading
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'clave-segura-desarrollo')
 app.config['PERMANENT_SESSION_LIFETIME'] = 900  # 15 minutos
+
+# Cola para almacenar los logs
+log_queue = queue.Queue()
+
+class QueueHandler(logging.Handler):
+    """Manejador de logs que coloca los mensajes en una cola para ser enviados en tiempo real."""
+    def emit(self, record):
+        log_entry = self.format(record)
+        log_queue.put(log_entry)
+
+# Configurar logging para que además de lo que ya haces, se envíen los logs a la cola.
+queue_handler = QueueHandler()
+queue_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+logging.getLogger().addHandler(queue_handler)
+logging.getLogger().setLevel(logging.INFO)
 
 # Configurar logging
 logging.basicConfig(
@@ -40,6 +57,15 @@ def cleanup_all_temp_files():
             logging.info(f"ℹ️ Limpieza temporal completada. Directorios eliminados: {dirs_removed}")
     except Exception as e:
         logging.error(f"❌ Error crítico en limpieza general: {str(e)}", exc_info=True)
+        
+@app.route('/logs')
+def stream_logs():
+    def generate():
+        while True:
+            log_entry = log_queue.get()
+            # Se envía cada log con el formato SSE
+            yield f"data: {log_entry}\n\n"
+    return Response(generate(), mimetype='text/event-stream')
 
 @app.route("/")
 def index():
