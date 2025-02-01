@@ -55,7 +55,7 @@ input[type="file"] {
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
 .file-dropzone:hover {
