@@ -52,7 +52,7 @@ input[type="file"] {
   padding: 10px 15px;
   text-decoration: none;
   color: white;
-  background: #007bff;
+  background: #00FF00;
   border-radius: 4px;
   border: none;
   font-weight: 600;
@@ -62,23 +62,30 @@ input[type="file"] {
 }
 
 .btn:hover {
-  background: #0056b3;
+  background: #00CC00;
 }
 
 .btn.secondary {
-  background: #6c757d;
+  background: #dc3545;
 }
 
 .btn.secondary:hover {
-  background: #5a6268;
+  background: #bb2d3b;
+}
+
+.btn.ternary {
+  background: #007bff;
+}
+.btn.ternary:hover {
+  background: #1565C0;
 }
 
 .btn.danger {
-  background-color: #dc3545;
+  background-color: #f0ad4e;
 }
 
 .btn.danger:hover {
-  background-color: #bb2d3b;
+  background-color: #ec971f;
 }
 
 /* Loader */
