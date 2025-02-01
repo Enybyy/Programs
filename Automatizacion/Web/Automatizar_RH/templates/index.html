@@ -18,13 +18,22 @@
     <div class="container">
       <p class="subtitle">Selecciona los archivos y haz clic en "Iniciar Proceso".</p>
       <form id="process-form" action="{{ url_for('start_process') }}" method="POST" enctype="multipart/form-data">
-        <div class="dropzone" id="dropzone">
-          <p>Arrastra y suelta los archivos aquí o haz clic para seleccionarlos.</p>
-          <input type="file" name="form_data_file" id="form_data_file" hidden />
-          <input type="file" name="local_db_file" id="local_db_file" required hidden />
+        <div class="form-group">
+          <label>Archivo de FORM Data (Excel):</label>
+          <div class="file-dropzone">
+            <input type="file" name="form_data_file" id="form_data_file" />
+          </div>
         </div>
+      
+        <div class="form-group">
+          <label>Archivo de Base Local (Excel):</label>
+          <div class="file-dropzone">
+            <input type="file" name="local_db_file" id="local_db_file" required />
+          </div>
+        </div>
+      
         <button type="submit" class="btn primary">Iniciar Proceso</button>
-      </form>      
+      </form>         
       
       <!-- Loader: oculto por defecto -->
       <div id="loader" class="loader" style="display:none;">

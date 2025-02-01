@@ -46,20 +46,26 @@ input[type="file"] {
   width: 100%;
 }
 
-/* Estilo para la zona de carga de archivos */
-.dropzone {
+/* Ampliar la zona de carga de archivos */
+.file-dropzone {
   border: 2px dashed #007bff;
   background: #f8f9fa;
-  padding: 30px;
+  padding: 20px;
   text-align: center;
-  cursor: pointer;
   border-radius: 8px;
-  margin-bottom: 15px;
+  cursor: pointer;
   transition: background 0.3s ease;
+  margin-top: 10px;
 }
 
-.dropzone:hover {
+.file-dropzone:hover {
   background: #e2e6ea;
+}
+
+.file-dropzone input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  cursor: pointer;
 }
 
 /* Botones de Descarga */
