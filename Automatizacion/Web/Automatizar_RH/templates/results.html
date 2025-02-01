@@ -3,20 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <title>Resultados - Automatización RH</title>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="{{ url_for('static', filename='css/style.css') }}"
-    />
-    <link 
-      rel="stylesheet" 
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   </head>
   <body>
     <div class="container">
       <h1>Resultados</h1>
       <p>El proceso ha finalizado. Descarga los archivos que necesites:</p>
+
+      <!-- Sección de resumen del proceso -->
+      <div class="summary">
+        <h2>Resumen del Proceso</h2>
+        {% if session.process_summary %}
+          <ul>
+            <li><strong>Observaciones:</strong> {{ session.process_summary.observaciones }}</li>
+            <li><strong>Errores:</strong> {{ session.process_summary.errores }}</li>
+            <li><strong>Total de registros validados:</strong> {{ session.process_summary.total_validado }}</li>
+            <li><strong>Total de registros finales:</strong> {{ session.process_summary.total_final }}</li>
+          </ul>
+        {% else %}
+          <p>No hay resumen disponible.</p>
+        {% endif %}
+      </div>
 
       <a class="btn" href="{{ url_for('download_validated') }}">
         <i class="fas fa-file-download"></i> Descargar Datos Validados
@@ -40,7 +48,6 @@
       <a href="{{ url_for('index') }}">Volver al Inicio</a>
     </div>
 
-    <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
   </body>
 </html>
