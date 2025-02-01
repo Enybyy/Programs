@@ -44,3 +44,31 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // (Aquí se puede agregar más código, si es necesario, para otros eventos)
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    const dropzone = document.getElementById("dropzone");
+    const fileInput1 = document.getElementById("form_data_file");
+    const fileInput2 = document.getElementById("local_db_file");
+
+    dropzone.addEventListener("click", () => {
+        fileInput1.click();
+    });
+
+    dropzone.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropzone.style.background = "#e2e6ea";
+    });
+
+    dropzone.addEventListener("dragleave", () => {
+        dropzone.style.background = "#f8f9fa";
+    });
+
+    dropzone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropzone.style.background = "#f8f9fa";
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput1.files = files;
+        }
+    });
+});

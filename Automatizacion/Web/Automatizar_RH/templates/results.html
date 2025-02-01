@@ -56,28 +56,29 @@
 
     <h2>Descargar Archivos</h2>
     <div class="download-buttons">
-      <a class="btn" href="{{ url_for('download_validated') }}">
-        <i class="fas fa-file-download"></i> Descargar Datos Validados
+      <a class="btn excel" href="{{ url_for('download_validated') }}">
+        <i class="fas fa-file-excel"></i> Descargar Datos Validados
       </a>
-      <a class="btn" href="{{ url_for('download_final') }}">
+      <a class="btn excel" href="{{ url_for('download_final') }}">
         <i class="fas fa-file-excel"></i> Descargar Datos Finales
       </a>
-      <a class="btn secondary" href="{{ url_for('download_pdfs') }}">
+      <a class="btn pdf" href="{{ url_for('download_pdfs') }}">
         <i class="fas fa-file-pdf"></i> Descargar PDFs (ZIP)
       </a>
-      <a class="btn ternary" href="{{ url_for('download_final_plus_pdfs') }}">
+      <a class="btn zip" href="{{ url_for('download_final_plus_pdfs') }}">
         <i class="fas fa-file-archive"></i> Descargar Excel + PDFs
       </a>
+      <a class="btn home" href="{{ url_for('index') }}">
+        <i class="fas fa-home"></i> Volver al Inicio
+      </a>  
     </div>
-
+    
     <!-- Botón de limpieza manual -->
-    <button id="cleanup-btn" class="btn danger">
-      <i class="fas fa-trash"></i> Eliminar Todos mis Archivos
-    </button>
-
-    <br><br>
-    <a href="{{ url_for('index') }}">Volver al Inicio</a>
-  </main>
+    <div class="download-buttons">
+      <button id="cleanup-btn" class="btn danger">
+        <i class="fas fa-trash"></i> Eliminar Todos mis Archivos
+      </button>
+    </div>
 
   <footer>
     <p>&copy; 2025 Automatización RH. Todos los derechos reservados.</p>
