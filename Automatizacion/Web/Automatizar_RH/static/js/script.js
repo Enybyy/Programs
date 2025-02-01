@@ -32,18 +32,17 @@ document.getElementById('cleanup-btn').addEventListener('click', function() {
     .catch(error => console.error('Error:', error));
 });
 
-document.addEventListener("DOMContentLoaded", function() {
-    // Manejo del loader al enviar el formulario
+document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("process-form");
     const loader = document.getElementById("loader");
-    
-    form.addEventListener("submit", function(event) {
-        // Muestra el loader
+  
+    if (form && loader) {
+      form.addEventListener("submit", function (event) {
+        // Muestra el loader cuando se envía el formulario
         loader.style.display = "block";
-    });
-    
-    // (Aquí se puede agregar más código, si es necesario, para otros eventos)
-});
+      });
+    }
+  });
 
 document.addEventListener("DOMContentLoaded", function() {
     const dropzone = document.getElementById("dropzone");

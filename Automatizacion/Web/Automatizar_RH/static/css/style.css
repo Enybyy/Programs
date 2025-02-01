@@ -95,6 +95,13 @@ input[type="file"] {
 }
 
 /* Colores según el tipo de archivo */
+.btn.primary {
+  background: #007bff;
+}
+.btn.primary:hover {
+  background: #0056b3;
+}
+
 .btn.excel {
   background: #28a745;
 }
@@ -207,13 +214,20 @@ footer {
   margin-top: 20px;
 }
 
-/* Pie de Página */
+/*Pié de página */
 footer {
   position: fixed;
   bottom: 0;
+  left: 0;
   width: 100%;
   background: #333;
   color: white;
   text-align: center;
-  padding: 10px;
+  padding: 10px 0;
+  z-index: 1000; /* Asegura que el footer esté por encima de otros elementos */
+}
+
+/* Ajustes para el contenedor principal en results.html */
+main.container {
+  margin-bottom: 60px; /* Asegura que el contenido no se solape con el footer */
 }
