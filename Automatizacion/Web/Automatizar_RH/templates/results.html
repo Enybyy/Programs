@@ -1,31 +1,61 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Resultados - Automatización RH</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-  </head>
-  <body>
-    <div class="container">
-      <h1>Resultados</h1>
-      <p>El proceso ha finalizado. Descarga los archivos que necesites:</p>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultados - Automatización RH</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <h1>Resultados del Proceso</h1>
+    </div>
+  </header>
 
-      <!-- Sección de resumen del proceso -->
-      <div class="summary">
-        <h2>Resumen del Proceso</h2>
-        {% if session.process_summary %}
+  <main class="container">
+    <h2>Resumen del Proceso</h2>
+
+    {% if session.process_summary %}
+      <table class="summary-table">
+        <tr>
+          <th>Observaciones</th>
+          <td>{{ session.process_summary.observaciones }}</td>
+        </tr>
+        <tr>
+          <th>Errores</th>
+          <td class="{% if session.process_summary.errores != 'Ninguno' %}error-text{% endif %}">
+            {{ session.process_summary.errores }}
+          </td>
+        </tr>
+        <tr>
+          <th>Total de Registros Validados</th>
+          <td>{{ session.process_summary.total_validado }}</td>
+        </tr>
+        <tr>
+          <th>Total de Registros Finales</th>
+          <td>{{ session.process_summary.total_final }}</td>
+        </tr>
+      </table>
+
+      {% if session.process_summary.errores != "Ninguno" %}
+        <div class="error-box">
+          <h3>Detalles de Errores</h3>
+          <p>Revisa los siguientes archivos que no pudieron ser validados correctamente:</p>
           <ul>
-            <li><strong>Observaciones:</strong> {{ session.process_summary.observaciones }}</li>
-            <li><strong>Errores:</strong> {{ session.process_summary.errores }}</li>
-            <li><strong>Total de registros validados:</strong> {{ session.process_summary.total_validado }}</li>
-            <li><strong>Total de registros finales:</strong> {{ session.process_summary.total_final }}</li>
+            {% for error in session.process_summary.detalles_errores %}
+              <li>📌 {{ error }}</li>
+            {% endfor %}
           </ul>
-        {% else %}
-          <p>No hay resumen disponible.</p>
-        {% endif %}
-      </div>
+        </div>
+      {% endif %}
+    {% else %}
+      <p class="no-data">No hay resumen disponible.</p>
+    {% endif %}
 
+    <h2>Descargar Archivos</h2>
+    <div class="download-buttons">
       <a class="btn" href="{{ url_for('download_validated') }}">
         <i class="fas fa-file-download"></i> Descargar Datos Validados
       </a>
@@ -38,16 +68,21 @@
       <a class="btn secondary" href="{{ url_for('download_final_plus_pdfs') }}">
         <i class="fas fa-file-archive"></i> Descargar Excel + PDFs
       </a>
-
-      <!-- Botón de limpieza manual -->
-      <button id="cleanup-btn" class="btn danger">
-        <i class="fas fa-trash"></i> Eliminar Todos mis Archivos
-      </button>
-
-      <br /><br />
-      <a href="{{ url_for('index') }}">Volver al Inicio</a>
     </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-  </body>
+    <!-- Botón de limpieza manual -->
+    <button id="cleanup-btn" class="btn danger">
+      <i class="fas fa-trash"></i> Eliminar Todos mis Archivos
+    </button>
+
+    <br><br>
+    <a href="{{ url_for('index') }}">Volver al Inicio</a>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Automatización RH. Todos los derechos reservados.</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
 </html>

@@ -129,13 +129,19 @@ def start_process():
         session['temp_dir'] = tempdir
         session['service_account_file'] = service_account_file
 
-        # Almacenar resumen del proceso
+        # Almacenar resumen del proceso con errores detallados
         summary = {
             "observaciones": "Proceso completado con éxito.",
-            "errores": "Ninguno",
+            "errores": "Ninguno" if len(df_val) == len(df_final) else "Se encontraron errores",
             "total_validado": len(df_val),
-            "total_final": len(df_final)
+            "total_final": len(df_final),
+            "detalles_errores": []
         }
+
+        if len(df_val) != len(df_final):
+            diferencia = df_val[~df_val['Nombre_Completo'].isin(df_final['Nombre_Completo'])]
+            summary["detalles_errores"] = diferencia["Nombre_Completo"].tolist()
+
         session['process_summary'] = summary
 
         logging.info("✅ [Sesión] Datos y resumen almacenados en sesión correctamente")
