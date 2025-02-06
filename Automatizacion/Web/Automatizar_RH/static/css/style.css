@@ -64,7 +64,7 @@ input[type="file"] {
 
 .file-dropzone input[type="file"] {
   width: 100%;
-  padding: 50px;
+  padding: 30px;
   cursor: pointer;
 }
 
