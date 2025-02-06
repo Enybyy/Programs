@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aceptación Especial</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Roboto', sans-serif;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      max-width: 90%;
+      width: 600px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    h1 {
+      font-family: 'Pacifico', cursive;
+      color: #2c3e50;
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    button {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #siBtn {
+      background: #2ecc71;
+      color: white;
+    }
+
+    #noBtn {
+      background: #e74c3c;
+      color: white;
+      transition: all 0.1s ease;
+      position: absolute;
+    }
+
+    #siBtn:hover {
+      background: #27ae60;
+      transform: scale(1.05);
+    }
+
+    .mensaje-final {
+      display: none;
+      font-size: 1.5rem;
+      color: #2c3e50;
+      margin-top: 2rem;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .corazones {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .corazon {
+      position: absolute;
+      opacity: 0;
+      animation: flotar 3s linear infinite;
+    }
+
+    @keyframes flotar {
+      0% { transform: translateY(0) rotate(45deg); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-100vh) rotate(45deg); opacity: 0; }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      button {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>¿Quiero tu chiquitín, aceptas?</h1>
+    <div class="buttons">
+      <button id="siBtn">¡Sí!</button>
+      <button id="noBtn">No :c</button>
+    </div>
+    <div class="mensaje-final">¡Yo lo sabía! Entonces quedamos así C:</div>
+  </div>
+
+  <script>
+    const siBtn = document.getElementById('siBtn');
+    const noBtn = document.getElementById('noBtn');
+    const mensajeFinal = document.querySelector('.mensaje-final');
+    const container = document.querySelector('.container');
+
+    // Función para mover el botón al azar
+    function moverBoton(boton) {
+      const x = Math.random() * (window.innerWidth - boton.offsetWidth - 100);
+      const y = Math.random() * (window.innerHeight - boton.offsetHeight - 100);
+      boton.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    // Cuando se pasa el ratón por encima del botón "No", se mueve y cambia su texto a "¡Sí!"
+    noBtn.addEventListener('mouseover', () => {
+      moverBoton(noBtn);
+      noBtn.innerText = '¡Sí!';
+    });
+
+    // Al hacer clic en el botón "No", se mueve (por si se clickea antes del cambio) y redirige a la acción de "Sí"
+    noBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      moverBoton(noBtn);
+      noBtn.innerText = '¡Sí!';
+      // Simula un clic en el botón "Sí"
+      siBtn.click();
+    });
+
+    // Al hacer clic en el botón "Sí", se muestra el mensaje final y la animación de corazones
+    siBtn.addEventListener('click', () => {
+      mensajeFinal.style.display = 'block';
+      setTimeout(() => {
+        mensajeFinal.style.opacity = '1';
+        siBtn.style.display = 'none';
+        noBtn.style.display = 'none';
+      }, 100);
+      
+      // Animación de corazones
+      for (let i = 0; i < 50; i++) {
+        const corazon = document.createElement('div');
+        corazon.innerHTML = '🌹';
+        corazon.className = 'corazon';
+        corazon.style.left = Math.random() * 100 + '%';
+        corazon.style.animationDelay = Math.random() * 2 + 's';
+        document.body.appendChild(corazon);
+      }
+      
+      container.style.transform = 'scale(1.05)';
+      setTimeout(() => {
+        container.style.transform = 'scale(1)';
+      }, 200);
+    });
+  </script>
+</body>
+</html>
