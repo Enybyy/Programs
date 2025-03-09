@@ -1,74 +1,62 @@
+import os
 import pandas as pd
-import re
-from docxtpl import DocxTemplate
+from docx import Document
 
-def read_excel_data(ruta_archivo_excel, columnas_requeridas):
-    # Leer el archivo Excel
-    df = pd.read_excel(ruta_archivo_excel, header=0, usecols=range(12))
+# Configuración de rutas
+excel_file = 'data/db.xlsx'           # Ruta del archivo Excel
+template_file = 'data/formato.docx'         # Ruta de la plantilla de Word
+output_folder = 'data/creado/'                # Carpeta donde se guardarán los contratos
+
+# Crear la carpeta de salida si no existe
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+# Leer la base de datos de Excel y convertir fechas
+df = pd.read_excel(excel_file, dtype=str)  # Leer todo como str para evitar errores
+df['FECHA DE INICIO'] = pd.to_datetime(df['FECHA DE INICIO'], errors='coerce', dayfirst=True)
+df['FECHA DE FIN'] = pd.to_datetime(df['FECHA DE FIN'], errors='coerce', dayfirst=True)
+
+def replace_text_in_paragraph(paragraph, replacements):
+    """ Reemplaza texto en un párrafo """
+    for key, value in replacements.items():
+        if key in paragraph.text:
+            for run in paragraph.runs:
+                if key in run.text:
+                    run.text = run.text.replace(key, str(value))
+
+# Iterar sobre cada registro del Excel
+for index, row in df.iterrows():
+    doc = Document(template_file)
     
-    # Limpiar los nombres de las columnas eliminando espacios en blanco
-    df.columns = [col.strip() for col in df.columns]
+    # Convertir fechas a formato dd/mm/yyyy si no son NaT (Not a Time)
+    fecha_inicio = row['FECHA DE INICIO'].strftime('%d/%m/%Y') if pd.notna(row['FECHA DE INICIO']) else ''
+    fecha_fin = row['FECHA DE FIN'].strftime('%d/%m/%Y') if pd.notna(row['FECHA DE FIN']) else ''
     
-    # Rellenar valores nulos con 'NaN'
-    valor_a_llenar = 'NaN'
-    df.fillna(valor_a_llenar, inplace=True)
-    
-    # Retornar los datos seleccionados
-    return df[columnas_requeridas].values.tolist()
-
-# Configuración inicial
-archivo_excel = 'data/db_base/3.2 IT - CORRESPONDENCIA - CONTRATO RH.xlsx'
-columnas_requeridas = ['EMBAJADOR', 'N° DOC', 'DIRECCION', 'DISTRITO', 'CIUDAD', 'CARGO',
-                       'CAMPAÑA', 'DURACIÓN', 'FECHA DE INICIO', 'FECHA DE FIN', 'REMUNERACIÓN']
-
-# Llamar a la función
-lista = read_excel_data(archivo_excel, columnas_requeridas)
-
-# Solicitar el número de documentos a generar
-number_doc = int(input("INGRESA EL NÚMERO DE DOCUMENTOS QUE DESEA MODIFICAR Y GENERAR: "))
-
-for l in range(number_doc):
-    embajador = re.sub(r'[\\/*?:"<>|]', "", lista[l][0])  # Limpiar nombre
-    id = str(lista[l][1])
-    direccion = lista[l][2]
-    distrito = lista[l][3]
-    ciudad = lista[l][4]
-    cargo = lista[l][5]
-    campaña = lista[l][6]
-    dias = str(lista[l][7])
-    fecha_inicio = str(lista[l][8])
-    fecha_fin = str(lista[l][9])
-    remuneracion = str(lista[l][10])
-
-    # Verificar si hay algún valor 'NaN' en los datos
-    if 'NaN' in [embajador, id, direccion, distrito, ciudad, cargo, campaña, dias, fecha_inicio, fecha_fin, remuneracion]:
-        # Si hay 'NaN', registrar como observado y guardar en la carpeta 'NaN'
-        print(f"Documento {embajador}.docx OBSERVADO generado con valor NaN.")
-        file_name = f'data/doc_generado/NaN/{embajador}-NaN.docx'
-    else:
-        # Si no hay 'NaN', generar normalmente el documento
-        file_name = f'data/doc_generado/{embajador}.docx'
-
-    # Crear el contexto con los valores extraídos
-    context = {
-        "EMBAJADOR": embajador,
-        "ID": id,
-        "DIRECCION": direccion,
-        "DISTRITO": distrito,
-        "CIUDAD": ciudad,
-        "CARGO": cargo,
-        "CAMPAÑA": campaña,
-        "DURACION": dias,
-        "FECHA_INICIO": fecha_inicio,
-        "FECHA_FIN": fecha_fin,
-        "REMUNERACION": remuneracion,
+    # Diccionario de reemplazo
+    replacements = {
+        '[NOMBRE]': row['NOMBRE'],
+        '[APELLIDO]': row['APELLIDO'],
+        '[DNI]': row['DNI'],
+        '[UBICACION]': row['UBICACION'],
+        '[CAMPAÑA]': row['CAMPAÑA'],
+        '[FECHA DE INICIO]': fecha_inicio,
+        '[FECHA DE FIN]': fecha_fin,
+        '[SALARIO]': row['SALARIO']
     }
+    
+    # Reemplazar etiquetas en el documento
+    for paragraph in doc.paragraphs:
+        replace_text_in_paragraph(paragraph, replacements)
 
-    try:
-        # Cargar plantilla y rellenar con datos
-        doc = DocxTemplate('data/db_base/2.1 CONTRATO RH - FULL SHOPPER PUBLICIDAD.docx')
-        doc.render(context)
-        doc.save(file_name)
-        print(f"Documento {file_name} generado correctamente.")
-    except Exception as e:
-        print(f"Error al generar {file_name}: {e}")
+    # También recorrer tablas si hay celdas con etiquetas
+    for table in doc.tables:
+        for row_table in table.rows:
+            for cell in row_table.cells:
+                for paragraph in cell.paragraphs:
+                    replace_text_in_paragraph(paragraph, replacements)
+
+    # Guardar el contrato con nombre personalizado
+    nombre_archivo = f"{row['NOMBRE']}_{row['APELLIDO'].replace(' ', '_')}.docx"
+    output_path = os.path.join(output_folder, nombre_archivo)
+    doc.save(output_path)
+    print(f"Contrato generado: {output_path}")
