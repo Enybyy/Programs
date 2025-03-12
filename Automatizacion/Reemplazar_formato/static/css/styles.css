@@ -1,0 +1,117 @@
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.app-container {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  padding: 30px;
+  margin-top: 50px;
+  margin-bottom: 50px;
+}
+.app-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+.app-title {
+  color: #0d6efd;
+  font-weight: 600;
+}
+.file-input-card {
+  border: 2px dashed #dee2e6;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  transition: all 0.3s;
+  background-color: #f8f9fa;
+  margin-bottom: 20px;
+}
+.file-input-card:hover {
+  border-color: #0d6efd;
+  background-color: #f0f7ff;
+}
+.file-input-icon {
+  font-size: 40px;
+  color: #6c757d;
+  margin-bottom: 15px;
+}
+.file-input-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.file-input {
+  display: none;
+}
+.btn-generate {
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  font-size: 18px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+}
+.btn-generate:hover {
+  background-color: #0b5ed7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.file-name {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #6c757d;
+  word-break: break-all;
+}
+.alert {
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.steps-container {
+  margin-bottom: 30px;
+}
+.step {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+.step-number {
+  background-color: #0d6efd;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+.step-text {
+  flex-grow: 1;
+}
+.step-title {
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+.step-description {
+  color: #6c757d;
+  font-size: 14px;
+}
+.footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+  color: #6c757d;
+  font-size: 14px;
+}

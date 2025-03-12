@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Archivo de estilos personalizado -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <title>Automatización de Contratos</title>
+</head>
+<body>
+  <div class="container app-container">
+    <div class="app-header">
+      <h1 class="app-title">Automatización de Contratos</h1>
+      <p class="text-muted">Genera contratos personalizados de forma masiva a partir de datos en Excel y una plantilla Word</p>
+    </div>
+    
+    <div class="steps-container">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-text">
+          <div class="step-title">Prepara tus archivos</div>
+          <div class="step-description">Necesitarás un archivo Excel (.xlsx) con los datos de los contratos y una plantilla Word (.docx) con las etiquetas a reemplazar.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-text">
+          <div class="step-title">Sube los archivos</div>
+          <div class="step-description">Selecciona los archivos Excel y Word en el formulario a continuación.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-text">
+          <div class="step-title">Genera los contratos</div>
+          <div class="step-description">Haz clic en "Generar Contratos" y descarga el archivo ZIP con todos los contratos personalizados.</div>
+        </div>
+      </div>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category else 'info' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
+    <form method="post" enctype="multipart/form-data" id="uploadForm">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="file-input-card" id="excelCard">
+            <div class="file-input-icon">
+              <i class="fas fa-file-excel"></i>
+            </div>
+            <label class="file-input-label" for="excel_file">Archivo Excel (.xlsx)</label>
+            <p class="text-muted small">Contiene los datos para generar los contratos</p>
+            <button type="button" class="btn btn-outline-primary select-file-btn" onclick="document.getElementById('excel_file').click()">
+              Seleccionar archivo
+            </button>
+            <input type="file" class="file-input" id="excel_file" name="excel_file" accept=".xlsx" required onchange="updateFileName(this, 'excelFileName')">
+            <div class="file-name" id="excelFileName"></div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="file-input-card" id="wordCard">
+            <div class="file-input-icon">
+              <i class="fas fa-file-word"></i>
+            </div>
+            <label class="file-input-label" for="template_file">Plantilla Word (.docx)</label>
+            <p class="text-muted small">Contiene las etiquetas a reemplazar: [NOMBRE], [APELLIDO], etc.</p>
+            <button type="button" class="btn btn-outline-primary select-file-btn" onclick="document.getElementById('template_file').click()">
+              Seleccionar archivo
+            </button>
+            <input type="file" class="file-input" id="template_file" name="template_file" accept=".docx" required onchange="updateFileName(this, 'wordFileName')">
+            <div class="file-name" id="wordFileName"></div>
+          </div>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn btn-generate" id="generateBtn">
+        <i class="fas fa-cogs me-2"></i> Generar Contratos
+      </button>
+    </form>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function updateFileName(input, elementId) {
+      var fileName = input.files[0] ? input.files[0].name : '';
+      document.getElementById(elementId).textContent = fileName;
+    }
+  </script>
+</body>
+</html>

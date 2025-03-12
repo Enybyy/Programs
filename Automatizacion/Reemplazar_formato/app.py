@@ -1,7 +1,7 @@
 import os
 import io
 import pandas as pd
-from flask import Flask, request, render_template_string, send_file, redirect, flash
+from flask import Flask, request, render_template, send_file, redirect, flash
 from docx import Document
 from werkzeug.utils import secure_filename
 import zipfile
@@ -23,7 +23,7 @@ def allowed_file(filename, ext):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() == ext
 
 def replace_text_in_paragraph(paragraph, replacements):
-    """ Reemplaza etiquetas en el texto de un párrafo """
+    """Reemplaza etiquetas en el texto de un párrafo."""
     for key, value in replacements.items():
         if key in paragraph.text:
             for run in paragraph.runs:
@@ -35,15 +35,15 @@ def index():
     if request.method == 'POST':
         # Validar que se hayan enviado ambos archivos
         if 'excel_file' not in request.files or 'template_file' not in request.files:
-            flash('Falta algún archivo.')
+            flash('Falta algún archivo.', 'danger')
             return redirect(request.url)
         excel_file = request.files['excel_file']
         template_file = request.files['template_file']
         if excel_file.filename == '' or template_file.filename == '':
-            flash('No se seleccionó alguno de los archivos.')
+            flash('No se seleccionó alguno de los archivos.', 'danger')
             return redirect(request.url)
         if not (allowed_file(excel_file.filename, 'xlsx') and allowed_file(template_file.filename, 'docx')):
-            flash('Tipo de archivo no válido. Asegúrate de subir un archivo Excel (.xlsx) y una plantilla Word (.docx).')
+            flash('Tipo de archivo no válido. Asegúrate de subir un archivo Excel (.xlsx) y una plantilla Word (.docx).', 'danger')
             return redirect(request.url)
         
         # Guardar los archivos de forma segura
@@ -62,8 +62,10 @@ def index():
         # Leer el Excel y convertir las columnas de fechas
         try:
             df = pd.read_excel(excel_path, dtype=str)
+            total_records = len(df)
+            flash(f'Se han detectado {total_records} registros a procesar.', 'info')
         except Exception as e:
-            flash(f'Error al leer el archivo Excel: {e}')
+            flash(f'Error al leer el archivo Excel: {e}', 'danger')
             return redirect(request.url)
         
         if 'FECHA DE INICIO' in df.columns:
@@ -72,6 +74,7 @@ def index():
             df['FECHA DE FIN'] = pd.to_datetime(df['FECHA DE FIN'], errors='coerce', dayfirst=True)
         
         # Iterar sobre cada registro para generar el documento personalizado
+        processed_files = 0
         for index, row in df.iterrows():
             doc = Document(template_path)
             fecha_inicio = row['FECHA DE INICIO'].strftime('%d/%m/%Y') if pd.notna(row.get('FECHA DE INICIO')) else ''
@@ -86,8 +89,10 @@ def index():
                 '[FECHA DE FIN]': fecha_fin,
                 '[SALARIO]': row.get('SALARIO', '')
             }
+            # Reemplazo en párrafos
             for paragraph in doc.paragraphs:
                 replace_text_in_paragraph(paragraph, replacements)
+            # Reemplazo en tablas (si las hubiera)
             for table in doc.tables:
                 for row_table in table.rows:
                     for cell in row_table.cells:
@@ -95,8 +100,9 @@ def index():
                             replace_text_in_paragraph(paragraph, replacements)
             
             nombre_archivo = f"{row.get('NOMBRE', 'nombre')}_{row.get('APELLIDO', 'apellido').replace(' ', '_')}.docx"
-            output_path = os.path.join(output_dir, nombre_archivo)
-            doc.save(output_path)
+            output_path_file = os.path.join(output_dir, nombre_archivo)
+            doc.save(output_path_file)
+            processed_files += 1
         
         # Empaquetar los documentos generados en un archivo ZIP
         zip_stream = io.BytesIO()
@@ -107,47 +113,11 @@ def index():
                     arcname = os.path.relpath(filepath, output_dir)
                     zipf.write(filepath, arcname)
         zip_stream.seek(0)
-        return send_file(zip_stream, as_attachment=True, download_name=f"contracts_{timestamp}.zip", mimetype='application/zip')
+        flash(f'Se han generado {processed_files} contratos con éxito.', 'success')
+        return send_file(zip_stream, as_attachment=True, download_name=f"contratos_{timestamp}.zip", mimetype='application/zip')
     
-    # HTML con Bootstrap para una interfaz moderna
-    html = '''
-    <!doctype html>
-    <html lang="es">
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-      <title>Automatización de Contratos</title>
-    </head>
-    <body>
-      <div class="container mt-5">
-        <h1 class="mb-4">Automatización de Contratos</h1>
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <div class="alert alert-warning">
-              {% for message in messages %}
-                <p>{{ message }}</p>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-        <form method="post" enctype="multipart/form-data">
-          <div class="mb-3">
-            <label for="excel_file" class="form-label">Archivo Excel (.xlsx)</label>
-            <input type="file" class="form-control" id="excel_file" name="excel_file" accept=".xlsx" required>
-          </div>
-          <div class="mb-3">
-            <label for="template_file" class="form-label">Plantilla Word (.docx)</label>
-            <input type="file" class="form-control" id="template_file" name="template_file" accept=".docx" required>
-          </div>
-          <button type="submit" class="btn btn-primary">Generar Contratos</button>
-        </form>
-      </div>
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    </body>
-    </html>
-    '''
-    return render_template_string(html)
+    # Renderizamos la plantilla index.html
+    return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True)
