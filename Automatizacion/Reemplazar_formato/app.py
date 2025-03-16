@@ -36,7 +36,7 @@ def replace_text_in_paragraph(paragraph, replacements):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        # Validar que se hayan enviado los tres archivos: DB-Contratos, DB-Personal y plantilla Word
+        # Validar que se hayan enviado los tres archivos: DB-Contratos, DB-Personal y la plantilla Word
         if ('contracts_file' not in request.files or 
             'personal_file' not in request.files or 
             'template_file' not in request.files):
@@ -93,46 +93,41 @@ def index():
             flash(f'Error al leer alguno de los archivos Excel: {e}', 'danger')
             return redirect(request.url)
         
-        # Convertir las columnas de fecha en la DB-Contratos (si existen)
-        if 'Fecha de inicio' in df_contracts.columns:
-            df_contracts['Fecha de inicio'] = pd.to_datetime(df_contracts['Fecha de inicio'], errors='coerce', dayfirst=True)
-        if 'Fecha de fin' in df_contracts.columns:
-            df_contracts['Fecha de fin'] = pd.to_datetime(df_contracts['Fecha de fin'], errors='coerce', dayfirst=True)
+        # Normalizamos los nombres de columnas (si ya están en mayúsculas, esto refuerza la consistencia)
+        df_contracts.columns = df_contracts.columns.str.strip().str.upper()
+        df_personal.columns = df_personal.columns.str.strip().str.upper()
         
-        # Realizar el merge de las dos bases de datos usando "Número de documento" como clave
-        # Se asume que ambas bases tienen la columna "Número de documento"
-        df_merged = pd.merge(df_contracts, df_personal, on="Número de documento", how="left", suffixes=("", " verificado"))
+        # Convertir las columnas de fecha en la DB-Contratos (si existen)
+        if "FECHA DE INICIO" in df_contracts.columns:
+            df_contracts["FECHA DE INICIO"] = pd.to_datetime(df_contracts["FECHA DE INICIO"], errors='coerce', dayfirst=True)
+        if "FECHA DE FIN" in df_contracts.columns:
+            df_contracts["FECHA DE FIN"] = pd.to_datetime(df_contracts["FECHA DE FIN"], errors='coerce', dayfirst=True)
+        
+        # Realizar el merge usando "NUMERO DE DOCUMENTO" (en mayúsculas)
+        try:
+            df_merged = pd.merge(df_contracts, df_personal, on="NUMERO DE DOCUMENTO", how="left", suffixes=("", " VERIFICADO"))
+        except Exception as e:
+            flash(f"Error al combinar las bases de datos: {e}", "danger")
+            return redirect(request.url)
         
         # Reordenar las columnas según el orden requerido:
-        # 1. Tipo de documento (DB-Contratos)
-        # 2. Número de documento
-        # 3. Apellidos y nombres (original de DB-Contratos)
-        # 4. Apellidos y nombres verificados (de DB-Personal)
-        # 5. Dirección (DB-Personal)
-        # 6. Distrito (DB-Personal)
-        # 7. Ciudad (DB-Personal)
-        # 8. Campaña (DB-Contratos)
-        # 9. Cargo (DB-Contratos)
-        # 10. Fecha de inicio (DB-Contratos)
-        # 11. Fecha de fin (DB-Contratos)
-        # 12. Pago (DB-Contratos)
+        # 1. TIPO DE DOCUMENTO, 2. NUMERO DE DOCUMENTO, 3. APELLIDOS Y NOMBRES (original),
+        # 4. APELLIDOS Y NOMBRES VERIFICADOS, 5. DIRECCION, 6. DISTRITO, 7. CIUDAD,
+        # 8. CAMPANA, 9. CARGO, 10. FECHA DE INICIO, 11. FECHA DE FIN, 12. PAGO
         desired_order = [
-            "Tipo de documento", "Número de documento", "Apellidos y nombres",
-            "Apellidos y nombres verificados", "Dirección", "Distrito", "Ciudad",
-            "Campaña", "Cargo", "Fecha de inicio", "Fecha de fin", "Pago"
+            "TIPO DE DOCUMENTO", "NUMERO DE DOCUMENTO", "APELLIDOS Y NOMBRES",
+            "APELLIDOS Y NOMBRES VERIFICADOS", "DIRECCION", "DISTRITO", "CIUDAD",
+            "CAMPANA", "CARGO", "FECHA DE INICIO", "FECHA DE FIN", "PAGO"
         ]
-        # Es posible que en df_merged algunas columnas no existan exactamente con esos nombres.
-        # Asegurarse de que "Apellidos y nombres verificados", "Dirección", "Distrito" y "Ciudad" provengan de la DB-Personal.
-        # Si las columnas en df_personal tienen nombres distintos, ajusta aquí.
         df_merged = df_merged.reindex(columns=desired_order)
         
         # Separar registros que tuvieron coincidencia y los que no
-        df_coinciden = df_merged[df_merged["Apellidos y nombres verificados"].notna()].copy()
-        df_no_coinciden = df_merged[df_merged["Apellidos y nombres verificados"].isna()].copy()
+        df_coinciden = df_merged[df_merged["APELLIDOS Y NOMBRES VERIFICADOS"].notna()].copy()
+        df_no_coinciden = df_merged[df_merged["APELLIDOS Y NOMBRES VERIFICADOS"].isna()].copy()
         
         # Guardar los resultados del merge en Excel dentro de la carpeta "Bases de Datos"
-        merge_file_path = os.path.join(bases_folder, "DB_Coinciden.xlsx")
-        no_match_file_path = os.path.join(bases_folder, "DB_No_Coinciden.xlsx")
+        merge_file_path = os.path.join(bases_folder, "DB_COINCIDEN.xlsx")
+        no_match_file_path = os.path.join(bases_folder, "DB_NO_COINCIDEN.xlsx")
         try:
             df_coinciden.to_excel(merge_file_path, index=False)
             df_no_coinciden.to_excel(no_match_file_path, index=False)
@@ -146,23 +141,27 @@ def index():
             # Crear el documento Word a partir de la plantilla
             doc = Document(template_path)
             
-            # Formatear fechas si son datetime (si no, dejar en blanco)
-            fecha_inicio = row["Fecha de inicio"].strftime('%d/%m/%Y') if pd.notna(row.get("Fecha de inicio")) and not isinstance(row["Fecha de inicio"], str) else row.get("Fecha de inicio", "")
-            fecha_fin = row["Fecha de fin"].strftime('%d/%m/%Y') if pd.notna(row.get("Fecha de fin")) and not isinstance(row["Fecha de fin"], str) else row.get("Fecha de fin", "")
+            # Formatear fechas si son datetime, o dejar el valor original si ya es string
+            fecha_inicio = (row["FECHA DE INICIO"].strftime('%d/%m/%Y') 
+                            if pd.notna(row.get("FECHA DE INICIO")) and not isinstance(row["FECHA DE INICIO"], str) 
+                            else row.get("FECHA DE INICIO", ""))
+            fecha_fin = (row["FECHA DE FIN"].strftime('%d/%m/%Y') 
+                         if pd.notna(row.get("FECHA DE FIN")) and not isinstance(row["FECHA DE FIN"], str) 
+                         else row.get("FECHA DE FIN", ""))
             
             # Diccionario de reemplazo para la plantilla
             replacements = {
-                "[TIPO_DOCUMENTO]": row.get("Tipo de documento", ""),
-                "[NUMERO_DOCUMENTO]": row.get("Número de documento", ""),
-                "[NOMBRE]": row.get("Apellidos y nombres verificados", ""),  # Usamos el nombre verificado para el contrato
-                "[DIRECCION]": row.get("Dirección", ""),
-                "[DISTRITO]": row.get("Distrito", ""),
-                "[CIUDAD]": row.get("Ciudad", ""),
-                "[CAMPANA]": row.get("Campaña", ""),
-                "[CARGO]": row.get("Cargo", ""),
+                "[TIPO_DOCUMENTO]": row.get("TIPO DE DOCUMENTO", ""),
+                "[NUMERO_DOCUMENTO]": row.get("NUMERO DE DOCUMENTO", ""),
+                "[NOMBRE]": row.get("APELLIDOS Y NOMBRES VERIFICADOS", ""),  # Usamos el nombre verificado
+                "[DIRECCION]": row.get("DIRECCION", ""),
+                "[DISTRITO]": row.get("DISTRITO", ""),
+                "[CIUDAD]": row.get("CIUDAD", ""),
+                "[CAMPANA]": row.get("CAMPANA", ""),
+                "[CARGO]": row.get("CARGO", ""),
                 "[FECHA_DE_INICIO]": fecha_inicio,
                 "[FECHA_DE_FIN]": fecha_fin,
-                "[PAGO]": row.get("Pago", "")
+                "[PAGO]": row.get("PAGO", "")
             }
             
             # Reemplazar en párrafos
@@ -175,14 +174,13 @@ def index():
                         for paragraph in cell.paragraphs:
                             replace_text_in_paragraph(paragraph, replacements)
             
-            # Nombre del archivo: usar el nombre verificado con espacios (sin modificar)
-            full_name = row.get("Apellidos y nombres verificados", "nombre no definido")
+            # Nombre del archivo: usar el nombre verificado con espacios (sin guiones)
+            full_name = row.get("APELLIDOS Y NOMBRES VERIFICADOS", "nombre no definido")
             word_filename = f"{full_name}.docx"
             word_file_path = os.path.join(contratos_folder, word_filename)
             doc.save(word_file_path)
             
             # Convertir el archivo Word a PDF usando docx2pdf
-            # Utilizaremos un directorio temporal para la conversión
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_word = os.path.join(temp_dir, "temp.docx")
                 temp_pdf = os.path.join(temp_dir, "temp.pdf")
@@ -209,9 +207,9 @@ def index():
                     arcname = os.path.relpath(filepath, output_dir)
                     zipf.write(filepath, arcname)
         zip_stream.seek(0)
-        return send_file(zip_stream, as_attachment=True, download_name=f"contratos_{timestamp}.zip", mimetype='application/zip')
+        return send_file(zip_stream, as_attachment=True, download_name=f"CONTRATOS_{timestamp}.zip", mimetype='application/zip')
     
-    # Renderizamos la plantilla index.html (frontend no se modifica)
+    # Renderizamos la plantilla index.html (manteniendo el estilo actual)
     return render_template('index.html')
 
 if __name__ == '__main__':
