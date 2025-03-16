@@ -55,37 +55,56 @@
     
     <form method="post" enctype="multipart/form-data" id="uploadForm">
       <div class="row">
-        <div class="col-md-6">
-          <div class="file-input-card" id="excelCard">
+        <!-- Carga de DB-Contratos -->
+        <div class="col-md-4">
+          <div class="file-input-card">
             <div class="file-input-icon">
               <i class="fas fa-file-excel"></i>
             </div>
-            <label class="file-input-label" for="excel_file">Archivo Excel (.xlsx)</label>
-            <p class="text-muted small">Contiene los datos para generar los contratos</p>
-            <button type="button" class="btn btn-outline-primary select-file-btn" onclick="document.getElementById('excel_file').click()">
+            <label class="file-input-label" for="contracts_file">Base de Datos Contratos</label>
+            <p class="text-muted small">Excel con los datos de contratos</p>
+            <button type="button" class="btn btn-outline-primary select-file-btn" onclick="document.getElementById('contracts_file').click()">
               Seleccionar archivo
             </button>
-            <input type="file" class="file-input" id="excel_file" name="excel_file" accept=".xlsx" required onchange="updateFileName(this, 'excelFileName')">
-            <div class="file-name" id="excelFileName"></div>
+            <input type="file" class="file-input" id="contracts_file" name="contracts_file" accept=".xlsx" required onchange="updateFileName(this, 'contractsFileName')">
+            <div class="file-name" id="contractsFileName"></div>
           </div>
         </div>
-        <div class="col-md-6">
-          <div class="file-input-card" id="wordCard">
+    
+        <!-- Carga de DB-Personal -->
+        <div class="col-md-4">
+          <div class="file-input-card">
+            <div class="file-input-icon">
+              <i class="fas fa-file-excel"></i>
+            </div>
+            <label class="file-input-label" for="personal_file">Base de Datos Personal</label>
+            <p class="text-muted small">Excel con los datos verificados</p>
+            <button type="button" class="btn btn-outline-primary select-file-btn" onclick="document.getElementById('personal_file').click()">
+              Seleccionar archivo
+            </button>
+            <input type="file" class="file-input" id="personal_file" name="personal_file" accept=".xlsx" required onchange="updateFileName(this, 'personalFileName')">
+            <div class="file-name" id="personalFileName"></div>
+          </div>
+        </div>
+    
+        <!-- Carga de Plantilla Word -->
+        <div class="col-md-4">
+          <div class="file-input-card">
             <div class="file-input-icon">
               <i class="fas fa-file-word"></i>
             </div>
-            <label class="file-input-label" for="template_file">Plantilla Word (.docx)</label>
-            <p class="text-muted small">Contiene las etiquetas a reemplazar: [NOMBRE], [APELLIDO], etc.</p>
+            <label class="file-input-label" for="template_file">Plantilla de Contrato</label>
+            <p class="text-muted small">Documento Word (.docx)</p>
             <button type="button" class="btn btn-outline-primary select-file-btn" onclick="document.getElementById('template_file').click()">
               Seleccionar archivo
             </button>
-            <input type="file" class="file-input" id="template_file" name="template_file" accept=".docx" required onchange="updateFileName(this, 'wordFileName')">
-            <div class="file-name" id="wordFileName"></div>
+            <input type="file" class="file-input" id="template_file" name="template_file" accept=".docx" required onchange="updateFileName(this, 'templateFileName')">
+            <div class="file-name" id="templateFileName"></div>
           </div>
         </div>
       </div>
-      
-      <button type="submit" class="btn btn-generate" id="generateBtn">
+    
+      <button type="submit" class="btn btn-generate">
         <i class="fas fa-cogs me-2"></i> Generar Contratos
       </button>
     </form>
